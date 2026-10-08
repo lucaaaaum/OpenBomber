@@ -1,7 +1,9 @@
+build/
+.cache
+result
+
 # Created by https://www.toptal.com/developers/gitignore/api/c++,cmake,git,direnv
 # Edit at https://www.toptal.com/developers/gitignore?templates=c++,cmake,git,direnv
-
-build/
 
 ### C++ ###
 # Prerequisites
