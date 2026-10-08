@@ -20,8 +20,8 @@ FetchContent_MakeAvailable(glfw glm)
 
 find_package(OpenGL REQUIRED)
 
-file(GLOB SOURCES src/*.cpp)
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.cpp)
 add_executable(openbomber ${SOURCES} common/glad.c)
 
-target_include_directories(openbomber PRIVATE include include/glad)
+target_include_directories(openbomber PRIVATE src include include/glad)
 target_link_libraries(openbomber PRIVATE glfw glm::glm OpenGL::GL)
