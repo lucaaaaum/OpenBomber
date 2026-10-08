@@ -4,11 +4,11 @@
 
 class Sprite {
 private:
-    glm::vec2 size;
-    unsigned int textureId;
+  glm::vec2 size;
+  unsigned int textureId;
 
 public:
-    Sprite(float width, float height, unsigned int textureId);
-    float getWidth();
-    float getHeight();
+  Sprite(float width, float height, unsigned int textureId);
+  float getWidth() const;
+  float getHeight() const;
 };
