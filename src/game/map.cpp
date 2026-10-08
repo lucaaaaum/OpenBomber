@@ -1,25 +1,8 @@
-#include <vector>
+#include "game/map.h"
 
-enum MapTileType {
-    EMPTY,
-    UNBREAKABLE_WALL,
-    BREAKABLE_WALL,
-    BOMB,
-    FIRE
-};
+MapTile::MapTile(MapTileType type) : type(type) {}
 
-class MapTile {
-    private:
-    MapTileType type;
-};
+MapTileType MapTile::getType() const { return type; }
 
-class Map {
-    private:
-    std::vector<std::vector<MapTile>> grid; 
-    public:
-    Map(int width, int height) {
-        grid = std::vector<std::vector<MapTile>>(height);
-        for (int i = 0; i < height; i++)
-            grid.push_back(std::vector<MapTile>(width));
-    }
-};
+Map::Map(int width, int height)
+    : grid(height, std::vector<MapTile>(width)) {}
