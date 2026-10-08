@@ -1,12 +1,4 @@
-#include <vector>
-#include "sprite.h"
+#include "render/renderer.h"
 #include <iostream>
 
-class Renderer {
-    private:
-    std::vector<Sprite> sprites;
-
-    public:
-    void render() {
-    }
-};
+void Renderer::render() { std::cout << "teste" << std::endl; }
