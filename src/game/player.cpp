@@ -1,6 +1,3 @@
-#include "render/sprite.h"
+#include "game/player.h"
 
-class Player {
-    private:
-    Sprite sprite;
-};
+Player::Player(Sprite sprite) : sprite(sprite) {}
