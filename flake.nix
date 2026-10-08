@@ -71,6 +71,10 @@
         devShells.default = pkgs.mkShell {
           inputsFrom = [ openbomber ];
 
+          packages = with pkgs; [
+            clang-tools
+          ];
+
           shellHook = ''
             export CPATH="${stb}:$CPATH"
           '';
