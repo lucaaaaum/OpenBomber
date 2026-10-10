@@ -110,16 +110,16 @@ unsigned int createShader(int shaderType, const char *shaderSource) {
   return shaderId;
 }
 
-unsigned int loadTexture(Sprite &sprite);
+void loadTexture(Sprite &sprite);
 
 void GlRenderer::loadSprites() {
   for (auto &[type, sprite] : tileSprites) {
-    unsigned int textureId = loadTexture(sprite);
+    loadTexture(sprite);
   }
-  unsigned int playerTextureId = loadTexture(playerSprite);
+  loadTexture(playerSprite);
 }
 
-unsigned int loadTexture(Sprite &sprite) {
+void loadTexture(Sprite &sprite) {
   int width, height, channels;
   unsigned char *data =
       stbi_load(sprite.getSourcePath(), &width, &height, &channels, 4);
@@ -143,8 +143,6 @@ unsigned int loadTexture(Sprite &sprite) {
   stbi_image_free(data);
   sprite.setTextureId(textureId);
   sprite.setSize(width, height);
-
-  return textureId;
 }
 
 void GlRenderer::draw(const Game &game) {
