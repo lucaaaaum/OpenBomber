@@ -12,6 +12,7 @@ private:
   Renderer &renderer;
   Map map;
   std::vector<glm::vec2> players;
+  void handleMovement();
 
 public:
   Game(Controller &controller, Renderer &renderer);
