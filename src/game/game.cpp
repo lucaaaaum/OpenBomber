@@ -55,7 +55,9 @@ void Game::handleMovement() {
       player.move(delta);
       player.resetMoveCooldown();
       auto *currentTile = map.getTile(playerPosition.x, playerPosition.y);
-      currentTile->setType(MapTileType::EMPTY);
+      if (currentTile->getType() == MapTileType::HAS_PLAYER) {
+        currentTile->setType(MapTileType::EMPTY);
+      }
       nextTile->setType(MapTileType::HAS_PLAYER);
     }
   }
