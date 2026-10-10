@@ -32,14 +32,14 @@ void Game::handleMovement() {
   preventDiagonalMovement(delta);
 
   if (delta.x != 0.0f || delta.y != 0.0f) {
-    auto player = players[0];
+    auto &player = players[0];
     auto playerPosition = player.getPosition();
     auto nextPosition =
         glm::vec2(playerPosition.x + delta.x, playerPosition.y + delta.y);
-    auto nextTile = map.getTile(nextPosition.x, nextPosition.y);
+    auto &nextTile = map.getTile(nextPosition.x, nextPosition.y);
     if (nextTile.getType() == MapTileType::EMPTY) {
       player.move(delta);
-      auto currentTile = map.getTile(playerPosition.x, playerPosition.y);
+      auto &currentTile = map.getTile(playerPosition.x, playerPosition.y);
       currentTile.setType(MapTileType::EMPTY);
       nextTile.setType(MapTileType::HAS_PLAYER);
     }
@@ -71,9 +71,9 @@ void preventDiagonalMovement(glm::vec2 &delta) {
 
 void Game::handleBombPlacement() {
   if (controller.isPressed(ControllerAction::PLACE_BOMB)) {
-    auto player = players[0];
+    auto &player = players[0];
     auto playerPosition = player.getPosition();
-    auto tile = map.getTile(playerPosition.x, playerPosition.y);
+    auto &tile = map.getTile(playerPosition.x, playerPosition.y);
     if (tile.getType() == MapTileType::HAS_PLAYER) {
       tile.setType(MapTileType::BOMB);
     }
