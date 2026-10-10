@@ -1,6 +1,8 @@
 #include <glad/glad.h>
 
 #include <GLFW/glfw3.h>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <stdexcept>
 
 #include "infra/opengl/gl-renderer.h"
@@ -10,8 +12,9 @@ using std::string;
 const char *vertexShader = R"(
 #version 330 core
 layout (location = 0) in vec2 aPos;
+uniform mat4 projection;
 void main() {
-    gl_Position = vec4(aPos, 0.0, 1.0);
+    gl_Position = projection * vec4(aPos, 0.0, 1.0);
 }
 )";
 
@@ -95,6 +98,9 @@ void GlRenderer::draw(const Game &game) {
   glClear(GL_COLOR_BUFFER_BIT);
 
   glUseProgram(shaderProgram);
+  auto projection = glm::ortho(0.0f, 30.0f, 10.0f, 0.0f, -1.0f, 1.0f);
+  glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1,
+                     GL_FALSE, glm::value_ptr(projection));
   glUniform4f(glGetUniformLocation(shaderProgram, "color"), 1.0f, 0.5f, 0.0f,
               1.0f);
   glBindVertexArray(vao);
