@@ -102,11 +102,64 @@ void GlRenderer::draw(const Game &game) {
   auto projection = glm::ortho(0.0f, 30.0f, 10.0f, 0.0f, -1.0f, 1.0f);
   glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1,
                      GL_FALSE, glm::value_ptr(projection));
-  glUniform4f(glGetUniformLocation(shaderProgram, "color"), 1.0f, 0.5f, 0.0f,
-              1.0f);
+
   glBindVertexArray(vao);
 
-  for (const auto &player : game.getPlayers()) {
+  drawMap(game.getMap());
+  drawPlayers(game.getPlayers());
+
+  glfwSwapBuffers(window);
+}
+
+void GlRenderer::drawMap(const Map &map) {
+  int width = map.getWidth();
+  int height = map.getHeight();
+
+  for (int y = 0; y < height; ++y) {
+    for (int x = 0; x < width; ++x) {
+      auto tile = map.getTile(x, y);
+      if (!tile) {
+        continue;
+      }
+
+      glm::vec4 color;
+      switch (tile->getType()) {
+      case MapTileType::EMPTY:
+        color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+        break;
+      case MapTileType::UNBREAKABLE_WALL:
+        color = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
+        break;
+      case MapTileType::BREAKABLE_WALL:
+        color = glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);
+        break;
+      case MapTileType::BOMB:
+        color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+        break;
+      case MapTileType::FIRE:
+        color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+        break;
+      case MapTileType::HAS_PLAYER:
+        color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+        break;
+      }
+
+      glUniform4fv(glGetUniformLocation(shaderProgram, "color"), 1,
+                   glm::value_ptr(color));
+      auto model = glm::translate(
+          glm::mat4(1.0f),
+          glm::vec3(static_cast<float>(x), static_cast<float>(y), 0.0f));
+      glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1,
+                         GL_FALSE, glm::value_ptr(model));
+      glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    }
+  }
+}
+
+void GlRenderer::drawPlayers(const std::vector<Player> &players) {
+  glUniform4f(glGetUniformLocation(shaderProgram, "color"), 1.0f, 0.5f, 0.0f,
+              1.0f);
+  for (const auto &player : players) {
     auto playerPosition = player.getPosition();
     auto model = glm::translate(
         glm::mat4(1.0f), glm::vec3(playerPosition.x, playerPosition.y, 0.0f));
@@ -114,8 +167,6 @@ void GlRenderer::draw(const Game &game) {
                        GL_FALSE, glm::value_ptr(model));
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
   }
-
-  glfwSwapBuffers(window);
 }
 
 GlRenderer::~GlRenderer() {

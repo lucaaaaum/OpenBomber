@@ -1,6 +1,9 @@
 #pragma once
 
+#include "game/map.h"
+#include "game/player.h"
 #include "game/renderer.h"
+#include <vector>
 
 struct GLFWwindow;
 
@@ -11,6 +14,8 @@ private:
   unsigned int vbo;
   unsigned int vao;
   void createShaderProgram();
+  void drawMap(const Map &map);
+  void drawPlayers(const std::vector<Player> &players);
 
 public:
   explicit GlRenderer(GLFWwindow *window);
