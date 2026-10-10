@@ -1,6 +1,7 @@
 #include <glad/glad.h>
 
 #include "game/game.h"
+#include "game/player.h"
 #include "infra/opengl/gl-renderer.h"
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -196,7 +197,18 @@ void GlRenderer::drawMap(const Map &map) {
 void GlRenderer::drawPlayers(const std::vector<Player> &players) {
   glBindTexture(GL_TEXTURE_2D, playerSprite.getTextureId());
   for (const auto &player : players) {
-    glUniform2f(glGetUniformLocation(shaderProgram, "frameOffset"), 0.0f, 0.0f);
+    auto playerDirection = player.getDirection();
+    auto offset = glm::vec2(0.0f, 0.0f);
+    if (playerDirection == Direction::UP) {
+      offset = glm::vec2(0.0f, 0.25f);
+    } else if (playerDirection == Direction::DOWN) {
+      offset = glm::vec2(0.0f, 0.0f);
+    } else if (playerDirection == Direction::LEFT) {
+      offset = glm::vec2(0.0f, 0.75f);
+    } else if (playerDirection == Direction::RIGHT) {
+      offset = glm::vec2(0.0f, 0.5f);
+    }
+    glUniform2f(glGetUniformLocation(shaderProgram, "frameOffset"), offset.x, offset.y);
     glUniform2f(glGetUniformLocation(shaderProgram, "frameSize"), 0.5f, 0.25f);
     auto playerPosition = player.getPosition();
     auto model = glm::translate(
