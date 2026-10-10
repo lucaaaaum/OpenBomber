@@ -88,11 +88,10 @@ void preventDiagonalMovement(glm::vec2 &delta) {
 
 void Game::handleBombPlacement() {
   auto &player = players[0];
-  if (controller.isPressed(ControllerAction::PLACE_BOMB) &&
-      player.canPlaceBomb()) {
+  if (controller.isPressed(ControllerAction::PLACE_BOMB) && player.canPlaceBomb()) {
     auto playerPosition = player.getPosition();
     auto *tile = map.getTile(playerPosition.x, playerPosition.y);
-    if (tile != nullptr && tile->getType() == MapTileType::HAS_PLAYER) {
+    if (tile != nullptr && (tile->getType() == MapTileType::HAS_PLAYER || tile->getType() == MapTileType::EMPTY)) {
       tile->setType(MapTileType::BOMB);
       player.resetBombCooldown();
     }
