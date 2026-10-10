@@ -5,10 +5,15 @@
 class Sprite {
 private:
   glm::vec2 size;
+  char *sourcePath;
   unsigned int textureId;
 
 public:
-  Sprite(float width, float height, unsigned int textureId);
+  Sprite(char *sourcePath);
   float getWidth() const;
   float getHeight() const;
+  void setSize(float width, float height);
+  void setTextureId(unsigned int id);
+  unsigned int getTextureId() const;
+  char *getSourcePath() const;
 };
