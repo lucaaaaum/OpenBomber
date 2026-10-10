@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-OpenBomber is a Bomberman-style 2D game in C++17 with OpenGL (GLFW + GLAD + GLM), written for a university course on graphics processing fundamentals. It is at an early skeleton stage: classes exist but there is no window/GL setup, game loop logic, or input handling yet. Commit messages are written in Portuguese.
+OpenBomber is a Bomberman-style 2D game in C++17 with OpenGL (GLFW + GLAD + GLM), written for a university course on graphics processing fundamentals. It is at an early stage: the window opens, the game loop runs and input is read, but nothing is drawn yet. Commit messages are written in Portuguese.
 
 ## Build & run
 
@@ -34,7 +34,10 @@ There are no tests or linters configured.
 
 ## Code layout & conventions
 
-- `src/game/` holds game logic (`Map` grid of `MapTile`s, `Player`); `src/render/` holds rendering (`Renderer`, `Sprite`).
-- `CMakeLists.txt` globs `src/*.cpp` recursively (with `CONFIGURE_DEPENDS`), so new `.cpp` files are compiled automatically. Include roots are `src/`, `include/`, and `include/glad/`, so includes are written relative to `src/` (e.g. `#include "render/sprite.h"`).
-- GLAD is vendored: `common/glad.c` plus headers in `include/glad/`.
-- Only `Sprite` currently follows a proper header/source split. `Renderer`, `Map`, and `Player` are defined entirely in `.cpp` files, and `main.cpp` pulls in `render/renderer.cpp` with `#include`. Because the glob also compiles every `.cpp` as its own translation unit, putting non-inline function definitions in a `.cpp` that is also `#include`d will cause duplicate-symbol link errors. Add a header for any class that needs to be used from another file.
+Ports and adapters:
+
+- `src/game/` is the domain and must not include GLFW/GL. It defines the ports `Renderer` (`draw(const Game &)`) and `Controller` (`update`, `isDown`, `isPressed` over `ControllerAction`), plus `Game` (loop, receives both by reference) and `Map`.
+- `src/infra/opengl/` holds the GLFW/OpenGL adapters: `GlfwPlatform` owns GLFW, the window and the GL context, creates `GlRenderer` and `GlController` after them and destroys them before (explicitly, via `unique_ptr::reset`). Headers only forward-declare `struct GLFWwindow`.
+- `main.cpp` is the composition root: builds the platform, injects its controller/renderer into `Game`.
+- Every class has a `.h`/`.cpp` split. `CMakeLists.txt` globs `src/*.cpp` recursively (with `CONFIGURE_DEPENDS`), so new `.cpp` files are compiled automatically. Include roots are `src/`, `include/`, and `include/glad/`, so includes are written relative to `src/` (e.g. `#include "game/map.h"`).
+- GLAD is vendored: `common/glad.c` plus headers in `include/glad/`. `<glad/glad.h>` must be included before `<GLFW/glfw3.h>`; they are separated by a blank line so clang-format doesn't reorder them.
