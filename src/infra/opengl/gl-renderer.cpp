@@ -84,8 +84,6 @@ void GlRenderer::createShaderProgram() {
 
   glDeleteShader(vertexShaderId);
   glDeleteShader(fragmentShaderId);
-
-  loadSprites();
 }
 
 unsigned int createShader(int shaderType, const char *shaderSource) {
