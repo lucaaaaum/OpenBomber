@@ -4,7 +4,10 @@
 #include <glm/fwd.hpp>
 
 Game::Game(Controller &controller, Renderer &renderer)
-    : controller(controller), renderer(renderer), map(30, 10) {}
+    : controller(controller), renderer(renderer), map(30, 10) {
+  auto player = Player(glm::vec2(1.0f, 1.0f));
+  players.push_back(player);
+}
 
 void Game::run() {
   while (true) {
@@ -14,6 +17,7 @@ void Game::run() {
     }
 
     handleMovement();
+    handleBombPlacement();
 
     renderer.draw(*this);
   }
@@ -29,11 +33,13 @@ void Game::handleMovement() {
 
   if (delta.x != 0.0f || delta.y != 0.0f) {
     auto player = players[0];
-    auto nextPosition = glm::vec2(player.x + delta.x, player.y + delta.y);
+    auto playerPosition = player.getPosition();
+    auto nextPosition =
+        glm::vec2(playerPosition.x + delta.x, playerPosition.y + delta.y);
     auto nextTile = map.getTile(nextPosition.x, nextPosition.y);
     if (nextTile.getType() == MapTileType::EMPTY) {
-      auto currentTile = map.getTile(player.x, player.y);
-      players[0] = nextPosition;
+      player.move(delta);
+      auto currentTile = map.getTile(playerPosition.x, playerPosition.y);
       currentTile.setType(MapTileType::EMPTY);
       nextTile.setType(MapTileType::HAS_PLAYER);
     }
@@ -63,6 +69,17 @@ void preventDiagonalMovement(glm::vec2 &delta) {
   }
 }
 
+void Game::handleBombPlacement() {
+  if (controller.isPressed(ControllerAction::PLACE_BOMB)) {
+    auto player = players[0];
+    auto playerPosition = player.getPosition();
+    auto tile = map.getTile(playerPosition.x, playerPosition.y);
+    if (tile.getType() == MapTileType::HAS_PLAYER) {
+      tile.setType(MapTileType::BOMB);
+    }
+  }
+}
+
 Map &Game::getMap() { return map; }
 
-std::vector<glm::vec2> &Game::getPlayers() { return players; }
+std::vector<Player> &Game::getPlayers() { return players; }

@@ -2,6 +2,7 @@
 
 #include "game/controller.h"
 #include "game/map.h"
+#include "game/player.h"
 #include "game/renderer.h"
 #include <glm/glm.hpp>
 #include <vector>
@@ -11,12 +12,13 @@ private:
   Controller &controller;
   Renderer &renderer;
   Map map;
-  std::vector<glm::vec2> players;
+  std::vector<Player> players;
   void handleMovement();
+  void handleBombPlacement();
 
 public:
   Game(Controller &controller, Renderer &renderer);
   void run();
   Map &getMap();
-  std::vector<glm::vec2> &getPlayers();
+  std::vector<Player> &getPlayers();
 };
