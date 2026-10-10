@@ -28,4 +28,7 @@ private:
 public:
   Map(int width, int height);
   MapTile *getTile(int x, int y);
+  const MapTile *getTile(int x, int y) const;
+  int getWidth() const;
+  int getHeight() const;
 };
