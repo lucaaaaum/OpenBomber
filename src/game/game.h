@@ -16,4 +16,6 @@ private:
 public:
   Game(Controller &controller, Renderer &renderer);
   void run();
+  Map &getMap();
+  std::vector<glm::vec2> &getPlayers();
 };

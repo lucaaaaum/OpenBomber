@@ -13,3 +13,7 @@ void Game::run() {
     renderer.draw(*this);
   }
 }
+
+Map &Game::getMap() { return map; }
+
+std::vector<glm::vec2> &Game::getPlayers() { return players; }
