@@ -17,9 +17,11 @@ layout (location = 0) in vec2 aPos;
 uniform mat4 projection;
 uniform mat4 model;
 out vec2 texCoord;
+uniform vec2 frameOffset;
+uniform vec2 frameSize;
 void main() {
     gl_Position = projection * model * vec4(aPos, 0.0, 1.0);
-    texCoord = aPos;
+    texCoord = frameOffset + aPos * frameSize;
 }
 )";
 
@@ -169,6 +171,9 @@ void GlRenderer::drawMap(const Map &map) {
   int width = map.getWidth();
   int height = map.getHeight();
 
+  glUniform2f(glGetUniformLocation(shaderProgram, "frameOffset"), 0.0f, 0.0f);
+  glUniform2f(glGetUniformLocation(shaderProgram, "frameSize"), 1.0f, 1.0f);
+
   for (int y = 0; y < height; ++y) {
     for (int x = 0; x < width; ++x) {
       auto tile = map.getTile(x, y);
@@ -191,6 +196,8 @@ void GlRenderer::drawMap(const Map &map) {
 void GlRenderer::drawPlayers(const std::vector<Player> &players) {
   glBindTexture(GL_TEXTURE_2D, playerSprite.getTextureId());
   for (const auto &player : players) {
+    glUniform2f(glGetUniformLocation(shaderProgram, "frameOffset"), 0.0f, 0.0f);
+    glUniform2f(glGetUniformLocation(shaderProgram, "frameSize"), 0.5f, 0.25f);
     auto playerPosition = player.getPosition();
     auto model = glm::translate(
         glm::mat4(1.0f), glm::vec3(playerPosition.x, playerPosition.y, 0.0f));
