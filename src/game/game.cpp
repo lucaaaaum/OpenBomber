@@ -82,4 +82,4 @@ void Game::handleBombPlacement() {
 
 Map &Game::getMap() { return map; }
 
-std::vector<Player> &Game::getPlayers() { return players; }
+const std::vector<Player> &Game::getPlayers() const { return players; }

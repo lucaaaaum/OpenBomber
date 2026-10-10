@@ -20,5 +20,5 @@ public:
   Game(Controller &controller, Renderer &renderer);
   void run();
   Map &getMap();
-  std::vector<Player> &getPlayers();
+  const std::vector<Player> &getPlayers() const;
 };
