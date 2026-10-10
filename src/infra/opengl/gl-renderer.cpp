@@ -16,17 +16,20 @@ const char *vertexShader = R"(
 layout (location = 0) in vec2 aPos;
 uniform mat4 projection;
 uniform mat4 model;
+out vec2 texCoord;
 void main() {
     gl_Position = projection * model * vec4(aPos, 0.0, 1.0);
+    texCoord = aPos;
 }
 )";
 
 const char *fragmentShader = R"(
 #version 330 core
-uniform vec4 color;
 out vec4 fragColor;
+in vec2 texCoord;
+uniform sampler2D spriteTexture;
 void main() {
-    fragColor = color;
+    fragColor = texture(spriteTexture, texCoord);
 }
 )";
 
@@ -171,30 +174,8 @@ void GlRenderer::drawMap(const Map &map) {
         continue;
       }
 
-      glm::vec4 color;
-      switch (tile->getType()) {
-      case MapTileType::EMPTY:
-        color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-        break;
-      case MapTileType::UNBREAKABLE_WALL:
-        color = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
-        break;
-      case MapTileType::BREAKABLE_WALL:
-        color = glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);
-        break;
-      case MapTileType::BOMB:
-        color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-        break;
-      case MapTileType::FIRE:
-        color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-        break;
-      case MapTileType::HAS_PLAYER:
-        color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
-        break;
-      }
-
-      glUniform4fv(glGetUniformLocation(shaderProgram, "color"), 1,
-                   glm::value_ptr(color));
+      auto &sprite = tileSprites.at(tile->getType());
+      glBindTexture(GL_TEXTURE_2D, sprite.getTextureId());
       auto model = glm::translate(
           glm::mat4(1.0f),
           glm::vec3(static_cast<float>(x), static_cast<float>(y), 0.0f));
@@ -206,8 +187,7 @@ void GlRenderer::drawMap(const Map &map) {
 }
 
 void GlRenderer::drawPlayers(const std::vector<Player> &players) {
-  glUniform4f(glGetUniformLocation(shaderProgram, "color"), 1.0f, 0.5f, 0.0f,
-              1.0f);
+  glBindTexture(GL_TEXTURE_2D, playerSprite.getTextureId());
   for (const auto &player : players) {
     auto playerPosition = player.getPosition();
     auto model = glm::translate(
