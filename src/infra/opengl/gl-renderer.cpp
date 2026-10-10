@@ -6,6 +6,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <stdexcept>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 using std::string;
 
@@ -28,7 +30,15 @@ void main() {
 }
 )";
 
-GlRenderer::GlRenderer(GLFWwindow *window) : window(window) {
+GlRenderer::GlRenderer(GLFWwindow *window)
+    : window(window), playerSprite("assets/player.png") {
+  tileSprites = {
+      {MapTileType::EMPTY, Sprite("assets/empty-tile.png")},
+      {MapTileType::UNBREAKABLE_WALL, Sprite("assets/unbreakable-wall.png")},
+      {MapTileType::BREAKABLE_WALL, Sprite("assets/breakable-wall.png")},
+      {MapTileType::BOMB, Sprite("assets/bomb.png")},
+      {MapTileType::FIRE, Sprite("assets/fire.png")},
+      {MapTileType::HAS_PLAYER, Sprite("assets/empty-tile.png")}};
   createShaderProgram();
 
   float vertices[] = {
@@ -48,6 +58,8 @@ GlRenderer::GlRenderer(GLFWwindow *window) : window(window) {
   glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
   glEnableVertexAttribArray(0);
   glBindVertexArray(0);
+
+  loadSprites();
 }
 
 unsigned int createShader(int shaderType, const char *shaderSource);
@@ -72,6 +84,8 @@ void GlRenderer::createShaderProgram() {
 
   glDeleteShader(vertexShaderId);
   glDeleteShader(fragmentShaderId);
+
+  loadSprites();
 }
 
 unsigned int createShader(int shaderType, const char *shaderSource) {
@@ -88,6 +102,43 @@ unsigned int createShader(int shaderType, const char *shaderSource) {
   }
 
   return shaderId;
+}
+
+unsigned int loadTexture(Sprite &sprite);
+
+void GlRenderer::loadSprites() {
+  for (auto &[type, sprite] : tileSprites) {
+    unsigned int textureId = loadTexture(sprite);
+  }
+  unsigned int playerTextureId = loadTexture(playerSprite);
+}
+
+unsigned int loadTexture(Sprite &sprite) {
+  int width, height, channels;
+  unsigned char *data =
+      stbi_load(sprite.getSourcePath(), &width, &height, &channels, 4);
+  if (data == nullptr) {
+    throw std::runtime_error(std::string("Failed to load texture ") +
+                             sprite.getSourcePath() + ": " +
+                             stbi_failure_reason());
+  }
+
+  unsigned int textureId;
+  glGenTextures(1, &textureId);
+  glBindTexture(GL_TEXTURE_2D, textureId);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
+               GL_UNSIGNED_BYTE, data);
+
+  stbi_image_free(data);
+  sprite.setTextureId(textureId);
+  sprite.setSize(width, height);
+
+  return textureId;
 }
 
 void GlRenderer::draw(const Game &game) {
@@ -170,6 +221,13 @@ void GlRenderer::drawPlayers(const std::vector<Player> &players) {
 }
 
 GlRenderer::~GlRenderer() {
+  for (auto &[type, sprite] : tileSprites) {
+    auto textureId = sprite.getTextureId();
+    glDeleteTextures(1, &textureId);
+  }
+  auto playerTextureId = playerSprite.getTextureId();
+  glDeleteTextures(1, &playerTextureId);
+
   glDeleteBuffers(1, &vbo);
   glDeleteVertexArrays(1, &vao);
   glDeleteProgram(shaderProgram);
