@@ -36,12 +36,12 @@ void Game::handleMovement() {
     auto playerPosition = player.getPosition();
     auto nextPosition =
         glm::vec2(playerPosition.x + delta.x, playerPosition.y + delta.y);
-    auto &nextTile = map.getTile(nextPosition.x, nextPosition.y);
-    if (nextTile.getType() == MapTileType::EMPTY) {
+    auto *nextTile = map.getTile(nextPosition.x, nextPosition.y);
+    if (nextTile != nullptr && nextTile->getType() == MapTileType::EMPTY) {
       player.move(delta);
-      auto &currentTile = map.getTile(playerPosition.x, playerPosition.y);
-      currentTile.setType(MapTileType::EMPTY);
-      nextTile.setType(MapTileType::HAS_PLAYER);
+      auto *currentTile = map.getTile(playerPosition.x, playerPosition.y);
+      currentTile->setType(MapTileType::EMPTY);
+      nextTile->setType(MapTileType::HAS_PLAYER);
     }
   }
 }
@@ -73,9 +73,9 @@ void Game::handleBombPlacement() {
   if (controller.isPressed(ControllerAction::PLACE_BOMB)) {
     auto &player = players[0];
     auto playerPosition = player.getPosition();
-    auto &tile = map.getTile(playerPosition.x, playerPosition.y);
-    if (tile.getType() == MapTileType::HAS_PLAYER) {
-      tile.setType(MapTileType::BOMB);
+    auto *tile = map.getTile(playerPosition.x, playerPosition.y);
+    if (tile != nullptr && tile->getType() == MapTileType::HAS_PLAYER) {
+      tile->setType(MapTileType::BOMB);
     }
   }
 }

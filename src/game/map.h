@@ -27,5 +27,5 @@ private:
 
 public:
   Map(int width, int height);
-  MapTile &getTile(int x, int y) { return grid[y][x]; }
+  MapTile *getTile(int x, int y);
 };
