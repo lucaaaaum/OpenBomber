@@ -30,7 +30,6 @@ public:
   int getWidth() const;
   int getHeight() const;
   Hitbox getTileHitbox(int x, int y) const {
-    return Hitbox(glm::vec2(x, y) - glm::vec2(0.5f, 0.5f),
-                  glm::vec2(x, y) + glm::vec2(0.5f, 0.5f));
+    return Hitbox(glm::vec2(x, y), glm::vec2(x + 1, y + 1));
   }
 };

@@ -8,6 +8,6 @@ glm::vec2 Hitbox::getMax() const { return max; }
 void Hitbox::setMax(const glm::vec2 &newMax) { max = newMax; }
 
 bool Hitbox::intersects(const Hitbox &other) const {
-  return !(max.x < other.min.x || min.x > other.max.x || max.y < other.min.y ||
-           min.y > other.max.y);
+  return !(max.x <= other.min.x || min.x >= other.max.x ||
+           max.y <= other.min.y || min.y >= other.max.y);
 }
