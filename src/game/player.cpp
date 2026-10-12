@@ -31,4 +31,6 @@ void Player::updateCooldown(float dt) {
 }
 bool Player::canMove() const { return moveCooldown <= 0; }
 
-Bomb Player::placeBomb() { return Bomb(position); }
+Bomb Player::placeBomb() { return Bomb(this, position); }
+
+int Player::getMaxBombs() const { return maxBombs; }

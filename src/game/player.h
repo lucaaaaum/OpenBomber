@@ -1,5 +1,6 @@
 #pragma once
 
+#include "game/bomb.h"
 #include <glm/glm.hpp>
 
 enum class Direction { UP, DOWN, LEFT, RIGHT };
@@ -28,6 +29,11 @@ public:
   float getMoveCooldown() const;
   void resetMoveCooldown();
   void updateCooldown(float dt);
+
   bool canMove() const;
+
   Bomb placeBomb();
+
+  int getMaxBombs() const;
+  void setMaxBombs(int newMaxBombs);
 };

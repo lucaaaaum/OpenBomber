@@ -1,6 +1,9 @@
 #include "game/bomb.h"
 
-Bomb::Bomb(glm::vec2 position) : position(position) {}
+Bomb::Bomb(const Player *owner, glm::vec2 position)
+    : owner(owner), position(position) {}
+
+const Player *Bomb::getOwner() const { return owner; }
 
 glm::vec2 Bomb::getPosition() const { return position; }
 
