@@ -115,6 +115,8 @@ void GlRenderer::loadSprites() {
     loadTexture(sprite);
   }
   loadTexture(playerSprite);
+  loadTexture(bombSprite);
+  loadTexture(fireSprite);
 }
 
 void loadTexture(Sprite &sprite) {
