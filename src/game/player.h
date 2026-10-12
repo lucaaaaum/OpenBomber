@@ -12,7 +12,8 @@ private:
   glm::vec2 position;
   Direction direction;
   float moveCooldown{0.0f};
-  float bombCooldown{0.0f};
+  int maxBombs{1};
+  int bombSize{1};
 
 public:
   Player(glm::vec2 position = glm::vec2(0.0f, 0.0f),
@@ -26,9 +27,7 @@ public:
 
   float getMoveCooldown() const;
   void resetMoveCooldown();
-  float getBombCooldown() const;
-  void resetBombCooldown();
   void updateCooldown(float dt);
   bool canMove() const;
-  bool canPlaceBomb() const;
+  Bomb placeBomb();
 };
