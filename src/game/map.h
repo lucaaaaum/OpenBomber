@@ -1,14 +1,12 @@
 #pragma once
 
+#include "game/hitbox.h"
 #include <vector>
 
 enum class MapTileType {
   EMPTY,
   UNBREAKABLE_WALL,
   BREAKABLE_WALL,
-  BOMB,
-  FIRE,
-  HAS_PLAYER
 };
 
 class MapTile {
@@ -31,4 +29,8 @@ public:
   const MapTile *getTile(int x, int y) const;
   int getWidth() const;
   int getHeight() const;
+  Hitbox getTileHitbox(int x, int y) const {
+    return Hitbox(glm::vec2(x, y) - glm::vec2(0.5f, 0.5f),
+                  glm::vec2(x, y) + glm::vec2(0.5f, 0.5f));
+  }
 };
