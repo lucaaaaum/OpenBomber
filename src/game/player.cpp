@@ -24,7 +24,10 @@ Hitbox Player::getHitbox() const { return hitbox; }
 Direction Player::getDirection() const { return direction; }
 void Player::setDirection(Direction newDirection) { direction = newDirection; }
 
-Bomb Player::placeBomb() { return Bomb(this, position); }
+Bomb Player::placeBomb() {
+  auto bombPosition = glm::floor(position);
+  return Bomb(this, bombPosition);
+}
 
 int Player::getMaxBombs() const { return maxBombs; }
 float Player::getSpeed() const { return speed; };
