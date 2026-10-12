@@ -8,7 +8,7 @@ enum class Direction { UP, DOWN, LEFT, RIGHT };
 
 class Player {
 private:
-  float speed{0.1f};
+  float speed{4.0f};
   glm::vec2 position;
   Direction direction;
   int maxBombs{1};
