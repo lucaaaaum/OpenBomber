@@ -16,6 +16,18 @@ Map::Map(int width, int height) : grid(height, std::vector<MapTile>(width)) {
       }
     }
   }
+
+  for (int y = 1; y < height - 1; ++y) {
+    for (int x = 1; x < width - 1; ++x) {
+      if (x == 1 && y == 1)
+        continue;
+      if (grid[y][x].getType() == MapTileType::EMPTY) {
+        if (rand() % 100 < 30) {
+          grid[y][x] = MapTile(MapTileType::BREAKABLE_WALL);
+        }
+      }
+    }
+  }
 }
 
 MapTile *Map::getTile(int x, int y) {
