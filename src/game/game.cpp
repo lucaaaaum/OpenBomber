@@ -6,7 +6,7 @@
 #include <glm/fwd.hpp>
 
 Game::Game(Controller &controller, Renderer &renderer)
-    : controller(controller), renderer(renderer), map(30, 10) {
+    : controller(controller), renderer(renderer), map(19, 19) {
   auto player = Player(glm::vec2(1.0f, 1.0f));
   players.push_back(player);
 }
