@@ -152,7 +152,11 @@ void GlRenderer::draw(const Game &game) {
   glClear(GL_COLOR_BUFFER_BIT);
 
   glUseProgram(shaderProgram);
-  auto projection = glm::ortho(0.0f, 30.0f, 10.0f, 0.0f, -1.0f, 1.0f);
+  auto gridWidth = game.getMap().getWidth();
+  auto gridHeight = game.getMap().getHeight();
+
+  auto projection =
+      glm::ortho(0.0f, float(gridWidth), float(gridHeight), 0.0f, -1.0f, 1.0f);
   glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1,
                      GL_FALSE, glm::value_ptr(projection));
 
