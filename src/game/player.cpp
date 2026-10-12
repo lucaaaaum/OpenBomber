@@ -4,8 +4,8 @@
 Hitbox createHitbox(glm::vec2 position);
 
 Player::Player(glm::vec2 position, Direction direction)
-    : position(position), direction(direction),
-      hitbox(createHitbox(position)) {}
+    : position(position), direction(direction), hitbox(createHitbox(position)) {
+}
 
 glm::vec2 Player::getPosition() const { return position; }
 
@@ -22,8 +22,13 @@ Hitbox createHitbox(glm::vec2 position) {
 Hitbox Player::getHitbox() const { return hitbox; }
 
 Direction Player::getDirection() const { return direction; }
+void Player::setDirection(Direction newDirection) { direction = newDirection; }
 
 Bomb Player::placeBomb() { return Bomb(this, position); }
 
 int Player::getMaxBombs() const { return maxBombs; }
 float Player::getSpeed() const { return speed; };
+
+Hitbox Player::projectHitbox(glm::vec2 position) const {
+  return createHitbox(position);
+}

@@ -16,7 +16,7 @@ private:
   std::vector<Player> players;
   std::vector<Bomb> bombs;
   std::vector<Fire> fires;
-  void handleMovement();
+  void handleMovement(float dt);
   void handleBombPlacement();
   void updateBombs(float dt);
   void updateFires(float dt);

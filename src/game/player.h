@@ -32,4 +32,7 @@ public:
   float getSpeed() const;
 
   Hitbox getHitbox() const;
+
+  Hitbox projectHitbox(glm::vec2 position) const;
+
 };
