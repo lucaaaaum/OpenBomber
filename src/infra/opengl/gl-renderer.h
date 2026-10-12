@@ -21,6 +21,8 @@ private:
   void loadSprites();
   void drawMap(const Map &map);
   void drawPlayers(const std::vector<Player> &players);
+  void drawBombs(const std::vector<Bomb> &bombs);
+  void drawFires(const std::vector<Fire> &fires);
 
 public:
   explicit GlRenderer(GLFWwindow *window);

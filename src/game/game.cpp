@@ -1,6 +1,7 @@
 #include "game/game.h"
 #include "game/controller.h"
 #include "game/map.h"
+#include <algorithm>
 #include <chrono>
 #include <glm/fwd.hpp>
 
@@ -26,11 +27,38 @@ void Game::run() {
       break;
     }
 
+    updateBombs(dt);
+    updateFires(dt);
     handleMovement();
     handleBombPlacement();
 
     renderer.draw(*this);
   }
+}
+
+void Game::updateBombs(float dt) {
+  for (auto &bomb : bombs) {
+    bomb.update(dt);
+    if (bomb.hasExploded()) {
+      auto newFires = bomb.explode();
+      fires.insert(fires.end(), newFires.begin(), newFires.end());
+    }
+  }
+
+  bombs.erase(
+      std::remove_if(bombs.begin(), bombs.end(),
+                     [](const Bomb &bomb) { return bomb.hasExploded(); }),
+      bombs.end());
+}
+
+void Game::updateFires(float dt) {
+  for (auto &fire : fires) {
+    fire.update(dt);
+  }
+
+  fires.erase(std::remove_if(fires.begin(), fires.end(),
+                             [](const Fire &fire) { return fire.isExpired(); }),
+              fires.end());
 }
 
 glm::vec2 getNextPositionDelta(Controller &controller);
@@ -88,16 +116,24 @@ void preventDiagonalMovement(glm::vec2 &delta) {
 
 void Game::handleBombPlacement() {
   auto &player = players[0];
-  if (controller.isPressed(ControllerAction::PLACE_BOMB) && player.canPlaceBomb()) {
-    auto playerPosition = player.getPosition();
-    auto *tile = map.getTile(playerPosition.x, playerPosition.y);
-    if (tile != nullptr && (tile->getType() == MapTileType::HAS_PLAYER || tile->getType() == MapTileType::EMPTY)) {
-      tile->setType(MapTileType::BOMB);
-      player.resetBombCooldown();
-    }
+  auto playerCanPlaceBomb = player.getMaxBombs() > countPlayerBombs(player);
+  auto playerWantsToPlaceBomb =
+      controller.isPressed(ControllerAction::PLACE_BOMB);
+
+  if (playerCanPlaceBomb && playerWantsToPlaceBomb) {
+    auto bomb = player.placeBomb();
+    bombs.push_back(bomb);
   }
 }
 
 const Map &Game::getMap() const { return map; }
 
 const std::vector<Player> &Game::getPlayers() const { return players; }
+const std::vector<Bomb> &Game::getBombs() const { return bombs; }
+const std::vector<Fire> &Game::getFires() const { return fires; }
+
+int Game::countPlayerBombs(const Player &player) const {
+  return std::count_if(bombs.begin(), bombs.end(), [&player](const Bomb &bomb) {
+    return bomb.getOwner() == &player;
+  });
+}

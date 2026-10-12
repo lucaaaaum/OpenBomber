@@ -161,6 +161,8 @@ void GlRenderer::draw(const Game &game) {
   glBindVertexArray(vao);
 
   drawMap(game.getMap());
+  drawBombs(game.getBombs());
+  drawFires(game.getFires());
   drawPlayers(game.getPlayers());
 
   glfwSwapBuffers(window);
@@ -206,7 +208,8 @@ void GlRenderer::drawPlayers(const std::vector<Player> &players) {
     } else if (playerDirection == Direction::RIGHT) {
       offset = glm::vec2(0.0f, 0.5f);
     }
-    glUniform2f(glGetUniformLocation(shaderProgram, "frameOffset"), offset.x, offset.y);
+    glUniform2f(glGetUniformLocation(shaderProgram, "frameOffset"), offset.x,
+                offset.y);
     glUniform2f(glGetUniformLocation(shaderProgram, "frameSize"), 0.5f, 0.25f);
     auto playerPosition = player.getPosition();
     auto model = glm::translate(
@@ -228,4 +231,36 @@ GlRenderer::~GlRenderer() {
   glDeleteBuffers(1, &vbo);
   glDeleteVertexArrays(1, &vao);
   glDeleteProgram(shaderProgram);
+}
+
+void GlRenderer::drawBombs(const std::vector<Bomb> &bombs) {
+  auto &sprite = tileSprites.at(MapTileType::BOMB);
+  glBindTexture(GL_TEXTURE_2D, sprite.getTextureId());
+  glUniform2f(glGetUniformLocation(shaderProgram, "frameOffset"), 0.0f, 0.0f);
+  glUniform2f(glGetUniformLocation(shaderProgram, "frameSize"), 1.0f, 1.0f);
+
+  for (const auto &bomb : bombs) {
+    auto bombPosition = bomb.getPosition();
+    auto model = glm::translate(
+        glm::mat4(1.0f), glm::vec3(bombPosition.x, bombPosition.y, 0.0f));
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1,
+                       GL_FALSE, glm::value_ptr(model));
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+  }
+}
+
+void GlRenderer::drawFires(const std::vector<Fire> &fires) {
+  auto &sprite = tileSprites.at(MapTileType::FIRE);
+  glBindTexture(GL_TEXTURE_2D, sprite.getTextureId());
+  glUniform2f(glGetUniformLocation(shaderProgram, "frameOffset"), 0.0f, 0.0f);
+  glUniform2f(glGetUniformLocation(shaderProgram, "frameSize"), 1.0f, 1.0f);
+
+  for (const auto &fire : fires) {
+    auto firePosition = fire.getPosition();
+    auto model = glm::translate(
+        glm::mat4(1.0f), glm::vec3(firePosition.x, firePosition.y, 0.0f));
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1,
+                       GL_FALSE, glm::value_ptr(model));
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+  }
 }
