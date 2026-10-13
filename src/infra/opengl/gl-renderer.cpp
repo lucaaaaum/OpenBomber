@@ -37,14 +37,12 @@ void main() {
 )";
 
 GlRenderer::GlRenderer(GLFWwindow *window)
-    : window(window), playerSprite("assets/player.png") {
+    : window(window), playerSprite("assets/player.png"),
+      bombSprite("assets/bomb.png"), fireSprite("assets/fire.png") {
   tileSprites = {
       {MapTileType::EMPTY, Sprite("assets/empty-tile.png")},
       {MapTileType::UNBREAKABLE_WALL, Sprite("assets/unbreakable-wall.png")},
-      {MapTileType::BREAKABLE_WALL, Sprite("assets/breakable-wall.png")},
-      {MapTileType::BOMB, Sprite("assets/bomb.png")},
-      {MapTileType::FIRE, Sprite("assets/fire.png")},
-      {MapTileType::HAS_PLAYER, Sprite("assets/empty-tile.png")}};
+      {MapTileType::BREAKABLE_WALL, Sprite("assets/breakable-wall.png")}};
   createShaderProgram();
 
   float vertices[] = {
@@ -117,6 +115,8 @@ void GlRenderer::loadSprites() {
     loadTexture(sprite);
   }
   loadTexture(playerSprite);
+  loadTexture(bombSprite);
+  loadTexture(fireSprite);
 }
 
 void loadTexture(Sprite &sprite) {
@@ -154,7 +154,11 @@ void GlRenderer::draw(const Game &game) {
   glClear(GL_COLOR_BUFFER_BIT);
 
   glUseProgram(shaderProgram);
-  auto projection = glm::ortho(0.0f, 30.0f, 10.0f, 0.0f, -1.0f, 1.0f);
+  auto gridWidth = game.getMap().getWidth();
+  auto gridHeight = game.getMap().getHeight();
+
+  auto projection =
+      glm::ortho(0.0f, float(gridWidth), float(gridHeight), 0.0f, -1.0f, 1.0f);
   glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1,
                      GL_FALSE, glm::value_ptr(projection));
 
@@ -234,8 +238,7 @@ GlRenderer::~GlRenderer() {
 }
 
 void GlRenderer::drawBombs(const std::vector<Bomb> &bombs) {
-  auto &sprite = tileSprites.at(MapTileType::BOMB);
-  glBindTexture(GL_TEXTURE_2D, sprite.getTextureId());
+  glBindTexture(GL_TEXTURE_2D, bombSprite.getTextureId());
   glUniform2f(glGetUniformLocation(shaderProgram, "frameOffset"), 0.0f, 0.0f);
   glUniform2f(glGetUniformLocation(shaderProgram, "frameSize"), 1.0f, 1.0f);
 
@@ -250,8 +253,7 @@ void GlRenderer::drawBombs(const std::vector<Bomb> &bombs) {
 }
 
 void GlRenderer::drawFires(const std::vector<Fire> &fires) {
-  auto &sprite = tileSprites.at(MapTileType::FIRE);
-  glBindTexture(GL_TEXTURE_2D, sprite.getTextureId());
+  glBindTexture(GL_TEXTURE_2D, fireSprite.getTextureId());
   glUniform2f(glGetUniformLocation(shaderProgram, "frameOffset"), 0.0f, 0.0f);
   glUniform2f(glGetUniformLocation(shaderProgram, "frameSize"), 1.0f, 1.0f);
 

@@ -4,7 +4,31 @@ MapTile::MapTile(MapTileType type) : type(type) {}
 
 MapTileType MapTile::getType() const { return type; }
 
-Map::Map(int width, int height) : grid(height, std::vector<MapTile>(width)) {}
+Map::Map(int width, int height) : grid(height, std::vector<MapTile>(width)) {
+  for (int y = 0; y < height; ++y) {
+    for (int x = 0; x < width; ++x) {
+      if (x == 0 || y == 0 || x == width - 1 || y == height - 1) {
+        grid[y][x] = MapTile(MapTileType::UNBREAKABLE_WALL);
+      } else if (y % 2 == 0 && x % 2 == 0) {
+        grid[y][x] = MapTile(MapTileType::UNBREAKABLE_WALL);
+      } else {
+        grid[y][x] = MapTile(MapTileType::EMPTY);
+      }
+    }
+  }
+
+  for (int y = 1; y < height - 1; ++y) {
+    for (int x = 1; x < width - 1; ++x) {
+      if (x == 1 && y == 1)
+        continue;
+      if (grid[y][x].getType() == MapTileType::EMPTY) {
+        if (rand() % 100 < 30) {
+          grid[y][x] = MapTile(MapTileType::BREAKABLE_WALL);
+        }
+      }
+    }
+  }
+}
 
 MapTile *Map::getTile(int x, int y) {
   if (x < 0 || y < 0 || x >= getWidth() || y >= getHeight()) {

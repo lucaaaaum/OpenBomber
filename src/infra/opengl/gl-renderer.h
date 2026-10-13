@@ -17,6 +17,8 @@ private:
   unsigned int vao;
   std::map<MapTileType, Sprite> tileSprites;
   Sprite playerSprite;
+  Sprite bombSprite;
+  Sprite fireSprite;
   void createShaderProgram();
   void loadSprites();
   void drawMap(const Map &map);

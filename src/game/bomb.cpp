@@ -1,11 +1,14 @@
 #include "game/bomb.h"
 
 Bomb::Bomb(const Player *owner, glm::vec2 position)
-    : owner(owner), position(position) {}
+    : owner(owner), position(position),
+      hitbox(position, position + glm::vec2(1.0f, 1.0f)) {}
 
 const Player *Bomb::getOwner() const { return owner; }
 
 glm::vec2 Bomb::getPosition() const { return position; }
+
+Hitbox Bomb::getHitbox() const { return hitbox; }
 
 void Bomb::update(float dt) { timer -= dt; }
 

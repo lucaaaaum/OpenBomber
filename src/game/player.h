@@ -1,39 +1,41 @@
 #pragma once
 
 #include "game/bomb.h"
+#include "game/hitbox.h"
 #include <glm/glm.hpp>
 
 enum class Direction { UP, DOWN, LEFT, RIGHT };
 
-const float MOVE_COOLDOWN = 0.15f;
-const float BOMB_COOLDOWN = 1.0f;
-
 class Player {
 private:
+  float speed{4.0f};
   glm::vec2 position;
   Direction direction;
-  float moveCooldown{0.0f};
   int maxBombs{1};
   int bombSize{1};
+  Hitbox hitbox;
+  bool isDead{false};
 
 public:
   Player(glm::vec2 position = glm::vec2(0.0f, 0.0f),
          Direction direction = Direction::DOWN);
 
   glm::vec2 getPosition() const;
-  void move(const glm::vec2 &delta);
+  void setPosition(const glm::vec2 &newPosition);
 
   Direction getDirection() const;
   void setDirection(Direction newDirection);
 
-  float getMoveCooldown() const;
-  void resetMoveCooldown();
-  void updateCooldown(float dt);
-
-  bool canMove() const;
-
   Bomb placeBomb();
-
   int getMaxBombs() const;
   void setMaxBombs(int newMaxBombs);
+
+  float getSpeed() const;
+
+  Hitbox getHitbox() const;
+
+  Hitbox projectHitbox(glm::vec2 position) const;
+
+  bool getIsDead() const;
+  void kill();
 };
