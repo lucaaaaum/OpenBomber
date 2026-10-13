@@ -125,6 +125,15 @@ void Game::handleMovement(float dt) {
     }
   }
 
+  auto currentHitbox = player.getHitbox();
+  for (auto &bomb : bombs) {
+    auto bombHitbox = bomb.getHitbox();
+    auto alreadyInsideBomb = currentHitbox.intersects(bombHitbox);
+    if (!alreadyInsideBomb && nextPositionHitbox.intersects(bombHitbox)) {
+      return;
+    }
+  }
+
   player.setPosition(nextPosition);
 }
 
