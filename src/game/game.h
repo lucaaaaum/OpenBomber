@@ -21,6 +21,8 @@ private:
   void updateBombs(float dt);
   void updateFires(float dt);
   int countPlayerBombs(const Player &player) const;
+  void handleFireCollisions();
+  void reset();
 
 public:
   Game(Controller &controller, Renderer &renderer);

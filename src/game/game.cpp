@@ -29,9 +29,17 @@ void Game::run() {
     updateBombs(dt);
     updateFires(dt);
     handleMovement(dt);
+    handleFireCollisions();
     handleBombPlacement();
 
     renderer.draw(*this);
+
+    auto allPlayersAreDead =
+        std::all_of(players.begin(), players.end(),
+                    [](const Player &player) { return player.getIsDead(); });
+    if (allPlayersAreDead) {
+      reset();
+    }
   }
 }
 
@@ -40,7 +48,19 @@ void Game::updateBombs(float dt) {
     bomb.update(dt);
     if (bomb.hasExploded()) {
       auto newFires = bomb.explode();
-      fires.insert(fires.end(), newFires.begin(), newFires.end());
+      for (auto &fire : newFires) {
+        auto firePosition = fire.getPosition();
+        int x = std::floor(firePosition.x);
+        int y = std::floor(firePosition.y);
+        auto tile = map.getTile(x, y);
+        if (!tile || tile->getType() == MapTileType::UNBREAKABLE_WALL) {
+          continue;
+        }
+        fires.insert(fires.end(), fire);
+        if (tile && tile->getType() == MapTileType::BREAKABLE_WALL) {
+          tile->setType(MapTileType::EMPTY);
+        }
+      }
     }
   }
 
@@ -128,9 +148,26 @@ glm::vec2 getDirectionVector(Controller &controller) {
   return glm::normalize(direction);
 }
 
+void Game::handleFireCollisions() {
+  for (auto &player : players) {
+    if (player.getIsDead()) {
+      continue;
+    }
+    auto playerHitbox = player.getHitbox();
+    for (auto &fire : fires) {
+      auto fireHitbox = fire.getHitbox();
+      if (playerHitbox.intersects(fireHitbox)) {
+        player.kill();
+        break;
+      }
+    }
+  }
+}
+
 void Game::handleBombPlacement() {
   auto &player = players[0];
-  auto playerCanPlaceBomb = player.getMaxBombs() > countPlayerBombs(player);
+  auto playerCanPlaceBomb =
+      player.getMaxBombs() > countPlayerBombs(player) && !player.getIsDead();
   auto playerWantsToPlaceBomb =
       controller.isPressed(ControllerAction::PLACE_BOMB);
 
@@ -150,4 +187,14 @@ int Game::countPlayerBombs(const Player &player) const {
   return std::count_if(bombs.begin(), bombs.end(), [&player](const Bomb &bomb) {
     return bomb.getOwner() == &player;
   });
+}
+
+void Game::reset() {
+  map = Map(19, 19);
+  players.clear();
+  bombs.clear();
+  fires.clear();
+
+  auto player = Player(glm::vec2(1.0f, 1.0f));
+  players.push_back(player);
 }

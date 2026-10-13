@@ -25,7 +25,7 @@ Direction Player::getDirection() const { return direction; }
 void Player::setDirection(Direction newDirection) { direction = newDirection; }
 
 Bomb Player::placeBomb() {
-  auto bombPosition = glm::floor(position);
+  auto bombPosition = glm::floor(position + 0.5f);
   return Bomb(this, bombPosition);
 }
 
@@ -35,3 +35,6 @@ float Player::getSpeed() const { return speed; };
 Hitbox Player::projectHitbox(glm::vec2 position) const {
   return createHitbox(position);
 }
+void Player::kill() { isDead = true; }
+
+bool Player::getIsDead() const { return isDead; }

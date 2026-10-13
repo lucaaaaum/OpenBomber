@@ -14,6 +14,7 @@ private:
   int maxBombs{1};
   int bombSize{1};
   Hitbox hitbox;
+  bool isDead{false};
 
 public:
   Player(glm::vec2 position = glm::vec2(0.0f, 0.0f),
@@ -35,4 +36,6 @@ public:
 
   Hitbox projectHitbox(glm::vec2 position) const;
 
+  bool getIsDead() const;
+  void kill();
 };
