@@ -18,7 +18,11 @@ Nix (preferred on Linux; a local, gitignored `.envrc` with `use flake` lets dire
 nix build            # builds ./result/bin/openbomber
 nix run              # build and run
 nix develop          # dev shell with cmake, clangd, glfw, glm, libGL, and stb on CPATH
+nix build .#windows -o result-windows   # cross-compiles with MinGW-w64
+wine result-windows/bin/openbomber.exe  # run from the repo root
 ```
+
+- `flake.nix` builds both packages with `mkOpenbomber targetPkgs`; `packages.windows` passes `pkgsCross.mingwW64`. The Windows build drops `libGL` (CMake finds `opengl32`) and overrides `glm`'s `meta.platforms`, because nixpkgs doesn't mark it available on Windows. `bin/` gets the `.exe` plus Nix-symlinked DLLs (`glfw3.dll`, `libstdc++-6.dll`, `libgcc_s_seh-1.dll`, `libmcfgthread-2.dll`); copy with `cp -L` to take it to a real Windows machine, together with `assets/`.
 
 Plain CMake (inside the dev shell or with deps installed):
 
