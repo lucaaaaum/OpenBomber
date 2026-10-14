@@ -24,6 +24,9 @@ Hitbox Player::getHitbox() const { return hitbox; }
 Direction Player::getDirection() const { return direction; }
 void Player::setDirection(Direction newDirection) { direction = newDirection; }
 
+bool Player::getIsMoving() const { return isMoving; }
+void Player::setIsMoving(bool newIsMoving) { isMoving = newIsMoving; }
+
 Bomb Player::placeBomb() {
   auto bombPosition = glm::floor(position + 0.5f);
   return Bomb(this, bombPosition);

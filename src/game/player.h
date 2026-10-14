@@ -11,6 +11,7 @@ private:
   float speed{4.0f};
   glm::vec2 position;
   Direction direction;
+  bool isMoving{false};
   int maxBombs{1};
   int bombSize{1};
   Hitbox hitbox;
@@ -25,6 +26,9 @@ public:
 
   Direction getDirection() const;
   void setDirection(Direction newDirection);
+
+  bool getIsMoving() const;
+  void setIsMoving(bool newIsMoving);
 
   Bomb placeBomb();
   int getMaxBombs() const;

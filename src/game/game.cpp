@@ -171,13 +171,14 @@ bool Game::isBlocked(const Hitbox &currentHitbox,
 glm::vec2 getDirectionVector(Controller &controller);
 
 void Game::handleMovement(float dt) {
+  auto &player = players[0];
+  player.setIsMoving(false);
+
   auto directionVector = getDirectionVector(controller);
 
   if (directionVector.x == 0.0f && directionVector.y == 0.0f) {
     return;
   }
-
-  auto &player = players[0];
 
   Direction newDirection;
   if (directionVector.x > 0.0f) {
@@ -223,6 +224,7 @@ void Game::handleMovement(float dt) {
   }
 
   player.setPosition(nextPosition);
+  player.setIsMoving(true);
 }
 
 glm::vec2 getDirectionVector(Controller &controller) {
