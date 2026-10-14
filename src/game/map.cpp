@@ -19,7 +19,7 @@ Map::Map(int width, int height) : grid(height, std::vector<MapTile>(width)) {
 
   for (int y = 1; y < height - 1; ++y) {
     for (int x = 1; x < width - 1; ++x) {
-      if (x == 1 && y == 1)
+      if ((x == 1 && y == 1) || (x == 1 && y == 2) || (x == 2 && y == 1))
         continue;
       if (grid[y][x].getType() == MapTileType::EMPTY) {
         if (rand() % 100 < 30) {
