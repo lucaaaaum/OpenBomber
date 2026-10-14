@@ -38,7 +38,8 @@ void main() {
 
 GlRenderer::GlRenderer(GLFWwindow *window)
     : window(window), playerSprite("assets/player.png"),
-      bombSprite("assets/bomb.png"), fireSprite("assets/fire.png") {
+      bombSprite("assets/bomb.png"), fireSprite("assets/fire.png"),
+      enemySprite("assets/enemy.png") {
   tileSprites = {
       {MapTileType::EMPTY, Sprite("assets/empty-tile.png")},
       {MapTileType::UNBREAKABLE_WALL, Sprite("assets/unbreakable-wall.png")},
@@ -117,6 +118,7 @@ void GlRenderer::loadSprites() {
   loadTexture(playerSprite);
   loadTexture(bombSprite);
   loadTexture(fireSprite);
+  loadTexture(enemySprite);
 }
 
 void loadTexture(Sprite &sprite) {
@@ -167,6 +169,7 @@ void GlRenderer::draw(const Game &game) {
   drawMap(game.getMap());
   drawBombs(game.getBombs());
   drawFires(game.getFires());
+  drawEnemies(game.getEnemies());
   drawPlayers(game.getPlayers());
 
   glfwSwapBuffers(window);
@@ -261,6 +264,21 @@ void GlRenderer::drawFires(const std::vector<Fire> &fires) {
     auto firePosition = fire.getPosition();
     auto model = glm::translate(
         glm::mat4(1.0f), glm::vec3(firePosition.x, firePosition.y, 0.0f));
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1,
+                       GL_FALSE, glm::value_ptr(model));
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+  }
+}
+
+void GlRenderer::drawEnemies(const std::vector<Enemy> &enemies) {
+  glBindTexture(GL_TEXTURE_2D, enemySprite.getTextureId());
+  glUniform2f(glGetUniformLocation(shaderProgram, "frameOffset"), 0.0f, 0.0f);
+  glUniform2f(glGetUniformLocation(shaderProgram, "frameSize"), 1.0f, 1.0f);
+
+  for (const auto &enemy : enemies) {
+    auto enemyPosition = enemy.getPosition();
+    auto model = glm::translate(
+        glm::mat4(1.0f), glm::vec3(enemyPosition.x, enemyPosition.y, 0.0f));
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1,
                        GL_FALSE, glm::value_ptr(model));
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);

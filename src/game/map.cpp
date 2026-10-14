@@ -47,3 +47,18 @@ const MapTile *Map::getTile(int x, int y) const {
 int Map::getWidth() const { return grid[0].size(); }
 
 int Map::getHeight() const { return grid.size(); }
+Hitbox Map::getTileHitbox(int x, int y) const {
+  return Hitbox(glm::vec2(x, y), glm::vec2(x + 1, y + 1));
+}
+
+const std::vector<glm::vec2> Map::getEmptyTilePositions() const {
+  std::vector<glm::vec2> emptyPositions;
+  for (int y = 0; y < getHeight(); ++y) {
+    for (int x = 0; x < getWidth(); ++x) {
+      if (grid[y][x].getType() == MapTileType::EMPTY) {
+        emptyPositions.emplace_back(x, y);
+      }
+    }
+  }
+  return emptyPositions;
+}

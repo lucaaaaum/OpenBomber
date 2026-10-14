@@ -12,6 +12,21 @@ Game::Game(Controller &controller, Renderer &renderer)
     : controller(controller), renderer(renderer), map(19, 19) {
   auto player = Player(glm::vec2(1.0f, 1.0f));
   players.push_back(player);
+
+  auto &emptyPositions = map.getEmptyTilePositions();
+  auto pickedPositions = std::vector<glm::vec2>();
+  for (int i = 0; i < 5; ++i) {
+    int randomIndex = rand() % emptyPositions.size();
+    auto randomPosition = emptyPositions[randomIndex];
+    if (std::find(pickedPositions.begin(), pickedPositions.end(),
+                  randomPosition) != pickedPositions.end()) {
+      --i;
+      continue;
+    }
+    pickedPositions.push_back(randomPosition);
+    auto enemy = Enemy(randomPosition);
+    enemies.push_back(enemy);
+  }
 }
 
 void Game::run() {
@@ -28,8 +43,10 @@ void Game::run() {
 
     updateBombs(dt);
     updateFires(dt);
+    updateEnemies(dt);
     handleMovement(dt);
     handleFireCollisions();
+    handleEnemyCollisions();
     handleBombPlacement();
 
     renderer.draw(*this);
@@ -78,6 +95,62 @@ void Game::updateFires(float dt) {
   fires.erase(std::remove_if(fires.begin(), fires.end(),
                              [](const Fire &fire) { return fire.isExpired(); }),
               fires.end());
+}
+
+void Game::updateEnemies(float dt) {
+  for (auto &enemy : enemies) {
+    auto direction = enemy.getDirection();
+    glm::vec2 directionVector(0.0f, 0.0f);
+    switch (direction) {
+    case Direction::UP:
+      directionVector.y -= 1.0f;
+      break;
+    case Direction::DOWN:
+      directionVector.y += 1.0f;
+      break;
+    case Direction::LEFT:
+      directionVector.x -= 1.0f;
+      break;
+    case Direction::RIGHT:
+      directionVector.x += 1.0f;
+      break;
+    }
+
+    auto nextPosition =
+        enemy.getPosition() + directionVector * enemy.getSpeed() * dt;
+    auto nextPositionHitbox = enemy.projectHitbox(nextPosition);
+
+    int startingRow = floor(nextPositionHitbox.getMin().y);
+    int endingRow = floor(nextPositionHitbox.getMax().y);
+    int startingColumn = floor(nextPositionHitbox.getMin().x);
+    int endingColumn = floor(nextPositionHitbox.getMax().x);
+
+    for (int row = startingRow; row <= endingRow; ++row) {
+      for (int column = startingColumn; column <= endingColumn; ++column) {
+        auto tile = map.getTile(column, row);
+        if (!tile || tile->getType() == MapTileType::EMPTY) {
+          continue;
+        }
+        auto tileHitbox = map.getTileHitbox(column, row);
+        if (nextPositionHitbox.intersects(tileHitbox)) {
+          enemy.invertDirection();
+          return;
+        }
+      }
+    }
+
+    auto currentHitbox = enemy.getHitbox();
+    for (auto &bomb : bombs) {
+      auto bombHitbox = bomb.getHitbox();
+      auto alreadyInsideBomb = currentHitbox.intersects(bombHitbox);
+      if (!alreadyInsideBomb && nextPositionHitbox.intersects(bombHitbox)) {
+        enemy.invertDirection();
+        return;
+      }
+    }
+
+    enemy.setPosition(nextPosition);
+  }
 }
 
 glm::vec2 getDirectionVector(Controller &controller);
@@ -158,14 +231,44 @@ glm::vec2 getDirectionVector(Controller &controller) {
 }
 
 void Game::handleFireCollisions() {
-  for (auto &player : players) {
-    if (player.getIsDead()) {
-      continue;
-    }
-    auto playerHitbox = player.getHitbox();
-    for (auto &fire : fires) {
-      auto fireHitbox = fire.getHitbox();
+  for (auto &fire : fires) {
+    auto fireHitbox = fire.getHitbox();
+
+    for (auto &player : players) {
+      if (player.getIsDead()) {
+        continue;
+      }
+      auto playerHitbox = player.getHitbox();
       if (playerHitbox.intersects(fireHitbox)) {
+        player.kill();
+        break;
+      }
+    }
+  }
+
+  enemies.erase(std::remove_if(enemies.begin(), enemies.end(),
+                               [this](const Enemy &enemy) {
+                                 auto enemyHitbox = enemy.getHitbox();
+                                 return std::any_of(
+                                     fires.begin(), fires.end(),
+                                     [&enemyHitbox](const Fire &fire) {
+                                       return enemyHitbox.intersects(
+                                           fire.getHitbox());
+                                     });
+                               }),
+                enemies.end());
+}
+
+void Game::handleEnemyCollisions() {
+  for (auto &enemy : enemies) {
+    auto enemyHitbox = enemy.getHitbox();
+
+    for (auto &player : players) {
+      if (player.getIsDead()) {
+        continue;
+      }
+      auto playerHitbox = player.getHitbox();
+      if (playerHitbox.intersects(enemyHitbox)) {
         player.kill();
         break;
       }
@@ -191,6 +294,7 @@ const Map &Game::getMap() const { return map; }
 const std::vector<Player> &Game::getPlayers() const { return players; }
 const std::vector<Bomb> &Game::getBombs() const { return bombs; }
 const std::vector<Fire> &Game::getFires() const { return fires; }
+const std::vector<Enemy> &Game::getEnemies() const { return enemies; }
 
 int Game::countPlayerBombs(const Player &player) const {
   return std::count_if(bombs.begin(), bombs.end(), [&player](const Bomb &bomb) {
@@ -206,4 +310,19 @@ void Game::reset() {
 
   auto player = Player(glm::vec2(1.0f, 1.0f));
   players.push_back(player);
+
+  auto &emptyPositions = map.getEmptyTilePositions();
+  auto pickedPositions = std::vector<glm::vec2>();
+  for (int i = 0; i < 5; ++i) {
+    int randomIndex = rand() % emptyPositions.size();
+    auto randomPosition = emptyPositions[randomIndex];
+    if (std::find(pickedPositions.begin(), pickedPositions.end(),
+                  randomPosition) != pickedPositions.end()) {
+      --i;
+      continue;
+    }
+    pickedPositions.push_back(randomPosition);
+    auto enemy = Enemy(randomPosition);
+    enemies.push_back(enemy);
+  }
 }

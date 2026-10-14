@@ -29,7 +29,6 @@ public:
   const MapTile *getTile(int x, int y) const;
   int getWidth() const;
   int getHeight() const;
-  Hitbox getTileHitbox(int x, int y) const {
-    return Hitbox(glm::vec2(x, y), glm::vec2(x + 1, y + 1));
-  }
+  Hitbox getTileHitbox(int x, int y) const;
+  const std::vector<glm::vec2> getEmptyTilePositions() const;
 };
