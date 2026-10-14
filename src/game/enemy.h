@@ -5,6 +5,7 @@
 class Enemy {
 private:
   float speed{2.0f};
+  glm::vec2 position;
   Direction direction;
   Hitbox hitbox;
 
