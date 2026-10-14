@@ -161,8 +161,6 @@ void GlRenderer::draw(const Game &game) {
   glClear(GL_COLOR_BUFFER_BIT);
 
   glUseProgram(shaderProgram);
-  auto gridWidth = game.getMap().getWidth();
-  auto gridHeight = game.getMap().getHeight();
 
   auto projection = calculateProjection(game.getMap(), width, height);
   glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1,
