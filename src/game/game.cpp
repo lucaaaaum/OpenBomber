@@ -307,6 +307,7 @@ void Game::reset() {
   players.clear();
   bombs.clear();
   fires.clear();
+  enemies.clear();
 
   auto player = Player(glm::vec2(1.0f, 1.0f));
   players.push_back(player);
