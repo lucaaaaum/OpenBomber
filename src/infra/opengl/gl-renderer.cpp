@@ -207,17 +207,18 @@ void GlRenderer::drawPlayers(const std::vector<Player> &players) {
     auto playerDirection = player.getDirection();
     auto offset = glm::vec2(0.0f, 0.0f);
     if (playerDirection == Direction::UP) {
-      offset = glm::vec2(0.0f, 0.25f);
+      offset = glm::vec2(0.0f, 0.125f);
     } else if (playerDirection == Direction::DOWN) {
       offset = glm::vec2(0.0f, 0.0f);
     } else if (playerDirection == Direction::LEFT) {
-      offset = glm::vec2(0.0f, 0.75f);
+      offset = glm::vec2(0.0f, 0.375f);
     } else if (playerDirection == Direction::RIGHT) {
-      offset = glm::vec2(0.0f, 0.5f);
+      offset = glm::vec2(0.0f, 0.25f);
     }
+    offset += player.getIsMoving() ? 0.5f : 0.0f;
     glUniform2f(glGetUniformLocation(shaderProgram, "frameOffset"), offset.x,
                 offset.y);
-    glUniform2f(glGetUniformLocation(shaderProgram, "frameSize"), 0.5f, 0.25f);
+    glUniform2f(glGetUniformLocation(shaderProgram, "frameSize"), 0.5f, 0.125f);
     auto playerPosition = player.getPosition();
     auto model = glm::translate(
         glm::mat4(1.0f), glm::vec3(playerPosition.x, playerPosition.y, 0.0f));
