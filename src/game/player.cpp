@@ -1,5 +1,6 @@
 #include "game/player.h"
 #include "game/bomb.h"
+#include <cmath>
 
 Hitbox createHitbox(glm::vec2 position);
 
@@ -26,6 +27,19 @@ void Player::setDirection(Direction newDirection) { direction = newDirection; }
 
 bool Player::getIsMoving() const { return isMoving; }
 void Player::setIsMoving(bool newIsMoving) { isMoving = newIsMoving; }
+
+const float ANIMATION_FRAME_DURATION = 0.2f;
+const int ANIMATION_FRAME_COUNT = 2;
+
+void Player::updateAnimation(float dt) {
+  animationTimer = std::fmod(animationTimer + dt,
+                             ANIMATION_FRAME_DURATION * ANIMATION_FRAME_COUNT);
+}
+
+int Player::getAnimationFrame() const {
+  return static_cast<int>(animationTimer / ANIMATION_FRAME_DURATION) %
+         ANIMATION_FRAME_COUNT;
+}
 
 Bomb Player::placeBomb() {
   auto bombPosition = glm::floor(position + 0.5f);

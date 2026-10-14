@@ -215,7 +215,8 @@ void GlRenderer::drawPlayers(const std::vector<Player> &players) {
     } else if (playerDirection == Direction::RIGHT) {
       offset = glm::vec2(0.0f, 0.25f);
     }
-    offset += player.getIsMoving() ? 0.5f : 0.0f;
+    offset.y += player.getIsMoving() ? 0.5f : 0.0f;
+    offset.x += player.getAnimationFrame() * 0.5f;
     glUniform2f(glGetUniformLocation(shaderProgram, "frameOffset"), offset.x,
                 offset.y);
     glUniform2f(glGetUniformLocation(shaderProgram, "frameSize"), 0.5f, 0.125f);

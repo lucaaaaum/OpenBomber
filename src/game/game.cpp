@@ -173,6 +173,7 @@ glm::vec2 getDirectionVector(Controller &controller);
 void Game::handleMovement(float dt) {
   auto &player = players[0];
   player.setIsMoving(false);
+  player.updateAnimation(dt);
 
   auto directionVector = getDirectionVector(controller);
 
