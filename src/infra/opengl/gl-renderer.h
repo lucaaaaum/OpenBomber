@@ -1,5 +1,6 @@
 #pragma once
 
+#include "game/enemy.h"
 #include "game/map.h"
 #include "game/player.h"
 #include "game/renderer.h"
@@ -19,12 +20,14 @@ private:
   Sprite playerSprite;
   Sprite bombSprite;
   Sprite fireSprite;
+  Sprite enemySprite;
   void createShaderProgram();
   void loadSprites();
   void drawMap(const Map &map);
   void drawPlayers(const std::vector<Player> &players);
   void drawBombs(const std::vector<Bomb> &bombs);
   void drawFires(const std::vector<Fire> &fires);
+  void drawEnemies(const std::vector<Enemy> &enemies);
 
 public:
   explicit GlRenderer(GLFWwindow *window);

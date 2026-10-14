@@ -24,12 +24,11 @@ private:
   std::vector<std::vector<MapTile>> grid;
 
 public:
-  Map(int width, int height);
+  Map(int width = 19, int height = 19);
   MapTile *getTile(int x, int y);
   const MapTile *getTile(int x, int y) const;
   int getWidth() const;
   int getHeight() const;
-  Hitbox getTileHitbox(int x, int y) const {
-    return Hitbox(glm::vec2(x, y), glm::vec2(x + 1, y + 1));
-  }
+  Hitbox getTileHitbox(int x, int y) const;
+  const std::vector<glm::vec2> getEmptyTilePositions() const;
 };

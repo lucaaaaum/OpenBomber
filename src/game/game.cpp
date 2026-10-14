@@ -9,9 +9,8 @@
 #include <glm/geometric.hpp>
 
 Game::Game(Controller &controller, Renderer &renderer)
-    : controller(controller), renderer(renderer), map(19, 19) {
-  auto player = Player(glm::vec2(1.0f, 1.0f));
-  players.push_back(player);
+    : controller(controller), renderer(renderer) {
+  startRound();
 }
 
 void Game::run() {
@@ -28,8 +27,10 @@ void Game::run() {
 
     updateBombs(dt);
     updateFires(dt);
+    updateEnemies(dt);
     handleMovement(dt);
     handleFireCollisions();
+    handleEnemyCollisions();
     handleBombPlacement();
 
     renderer.draw(*this);
@@ -40,6 +41,30 @@ void Game::run() {
     if (allPlayersAreDead) {
       reset();
     }
+  }
+}
+
+void Game::startRound() {
+  auto player = Player(glm::vec2(1.0f, 1.0f));
+  players.push_back(player);
+
+  auto &emptyPositions = map.getEmptyTilePositions();
+  auto pickedPositions = std::vector<glm::vec2>();
+  for (int i = 0; i < 5; ++i) {
+    int randomIndex = rand() % emptyPositions.size();
+    auto randomPosition = emptyPositions[randomIndex];
+    if (randomPosition == glm::vec2(1.0f, 1.0f)) {
+      --i;
+      continue;
+    }
+    if (std::find(pickedPositions.begin(), pickedPositions.end(),
+                  randomPosition) != pickedPositions.end()) {
+      --i;
+      continue;
+    }
+    pickedPositions.push_back(randomPosition);
+    auto enemy = Enemy(randomPosition);
+    enemies.push_back(enemy);
   }
 }
 
@@ -80,16 +105,81 @@ void Game::updateFires(float dt) {
               fires.end());
 }
 
+void Game::updateEnemies(float dt) {
+  for (auto &enemy : enemies) {
+    auto direction = enemy.getDirection();
+    glm::vec2 directionVector(0.0f, 0.0f);
+    switch (direction) {
+    case Direction::UP:
+      directionVector.y -= 1.0f;
+      break;
+    case Direction::DOWN:
+      directionVector.y += 1.0f;
+      break;
+    case Direction::LEFT:
+      directionVector.x -= 1.0f;
+      break;
+    case Direction::RIGHT:
+      directionVector.x += 1.0f;
+      break;
+    }
+
+    auto nextPosition =
+        enemy.getPosition() + directionVector * enemy.getSpeed() * dt;
+    auto nextPositionHitbox = enemy.projectHitbox(nextPosition);
+
+    if (isBlocked(enemy.getHitbox(), nextPositionHitbox)) {
+      enemy.invertDirection();
+      continue;
+    }
+
+    enemy.setPosition(nextPosition);
+  }
+}
+
+bool Game::isBlocked(const Hitbox &currentHitbox,
+                     const Hitbox &nextHitbox) const {
+  int startingRow = floor(nextHitbox.getMin().y);
+  int endingRow = floor(nextHitbox.getMax().y);
+  int startingColumn = floor(nextHitbox.getMin().x);
+  int endingColumn = floor(nextHitbox.getMax().x);
+
+  for (int row = startingRow; row <= endingRow; ++row) {
+    for (int column = startingColumn; column <= endingColumn; ++column) {
+      auto tile = map.getTile(column, row);
+      if (!tile || tile->getType() == MapTileType::EMPTY) {
+        continue;
+      }
+      auto tileHitbox = map.getTileHitbox(column, row);
+      if (nextHitbox.intersects(tileHitbox)) {
+        return true;
+      }
+    }
+  }
+
+  for (auto &bomb : bombs) {
+    auto bombHitbox = bomb.getHitbox();
+    auto alreadyInsideBomb = currentHitbox.intersects(bombHitbox);
+    if (!alreadyInsideBomb && nextHitbox.intersects(bombHitbox)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 glm::vec2 getDirectionVector(Controller &controller);
 
 void Game::handleMovement(float dt) {
+  auto &player = players[0];
+  player.setIsMoving(false);
+  player.updateAnimation(dt);
+
   auto directionVector = getDirectionVector(controller);
 
   if (directionVector.x == 0.0f && directionVector.y == 0.0f) {
     return;
   }
-
-  auto &player = players[0];
 
   Direction newDirection;
   if (directionVector.x > 0.0f) {
@@ -125,7 +215,17 @@ void Game::handleMovement(float dt) {
     }
   }
 
+  auto currentHitbox = player.getHitbox();
+  for (auto &bomb : bombs) {
+    auto bombHitbox = bomb.getHitbox();
+    auto alreadyInsideBomb = currentHitbox.intersects(bombHitbox);
+    if (!alreadyInsideBomb && nextPositionHitbox.intersects(bombHitbox)) {
+      return;
+    }
+  }
+
   player.setPosition(nextPosition);
+  player.setIsMoving(true);
 }
 
 glm::vec2 getDirectionVector(Controller &controller) {
@@ -149,14 +249,44 @@ glm::vec2 getDirectionVector(Controller &controller) {
 }
 
 void Game::handleFireCollisions() {
-  for (auto &player : players) {
-    if (player.getIsDead()) {
-      continue;
-    }
-    auto playerHitbox = player.getHitbox();
-    for (auto &fire : fires) {
-      auto fireHitbox = fire.getHitbox();
+  for (auto &fire : fires) {
+    auto fireHitbox = fire.getHitbox();
+
+    for (auto &player : players) {
+      if (player.getIsDead()) {
+        continue;
+      }
+      auto playerHitbox = player.getHitbox();
       if (playerHitbox.intersects(fireHitbox)) {
+        player.kill();
+        break;
+      }
+    }
+  }
+
+  enemies.erase(std::remove_if(enemies.begin(), enemies.end(),
+                               [this](const Enemy &enemy) {
+                                 auto enemyHitbox = enemy.getHitbox();
+                                 return std::any_of(
+                                     fires.begin(), fires.end(),
+                                     [&enemyHitbox](const Fire &fire) {
+                                       return enemyHitbox.intersects(
+                                           fire.getHitbox());
+                                     });
+                               }),
+                enemies.end());
+}
+
+void Game::handleEnemyCollisions() {
+  for (auto &enemy : enemies) {
+    auto enemyHitbox = enemy.getHitbox();
+
+    for (auto &player : players) {
+      if (player.getIsDead()) {
+        continue;
+      }
+      auto playerHitbox = player.getHitbox();
+      if (playerHitbox.intersects(enemyHitbox)) {
         player.kill();
         break;
       }
@@ -182,6 +312,7 @@ const Map &Game::getMap() const { return map; }
 const std::vector<Player> &Game::getPlayers() const { return players; }
 const std::vector<Bomb> &Game::getBombs() const { return bombs; }
 const std::vector<Fire> &Game::getFires() const { return fires; }
+const std::vector<Enemy> &Game::getEnemies() const { return enemies; }
 
 int Game::countPlayerBombs(const Player &player) const {
   return std::count_if(bombs.begin(), bombs.end(), [&player](const Bomb &bomb) {
@@ -190,11 +321,11 @@ int Game::countPlayerBombs(const Player &player) const {
 }
 
 void Game::reset() {
-  map = Map(19, 19);
   players.clear();
   bombs.clear();
   fires.clear();
+  enemies.clear();
+  map = Map();
 
-  auto player = Player(glm::vec2(1.0f, 1.0f));
-  players.push_back(player);
+  startRound();
 }

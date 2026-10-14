@@ -11,7 +11,8 @@ class Bomb {
 private:
   const Player *owner;
   glm::vec2 position;
-  float timer{3.0f};
+  float fuseDuration{3.0f};
+  float timer{fuseDuration};
   int size{1};
   Hitbox hitbox;
 
@@ -22,6 +23,7 @@ public:
   glm::vec2 getPosition() const;
   Hitbox getHitbox() const;
   void update(float dt);
+  float getProgress() const;
   bool hasExploded() const;
   std::vector<Fire> explode();
 };

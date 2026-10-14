@@ -4,6 +4,8 @@
 #include "game/player.h"
 #include "infra/opengl/gl-renderer.h"
 #include <GLFW/glfw3.h>
+#include <algorithm>
+#include <cmath>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <stdexcept>
@@ -38,7 +40,8 @@ void main() {
 
 GlRenderer::GlRenderer(GLFWwindow *window)
     : window(window), playerSprite("assets/player.png"),
-      bombSprite("assets/bomb.png"), fireSprite("assets/fire.png") {
+      bombSprite("assets/bomb.png"), fireSprite("assets/fire.png"),
+      enemySprite("assets/enemy.png") {
   tileSprites = {
       {MapTileType::EMPTY, Sprite("assets/empty-tile.png")},
       {MapTileType::UNBREAKABLE_WALL, Sprite("assets/unbreakable-wall.png")},
@@ -117,6 +120,7 @@ void GlRenderer::loadSprites() {
   loadTexture(playerSprite);
   loadTexture(bombSprite);
   loadTexture(fireSprite);
+  loadTexture(enemySprite);
 }
 
 void loadTexture(Sprite &sprite) {
@@ -145,6 +149,9 @@ void loadTexture(Sprite &sprite) {
   sprite.setSize(width, height);
 }
 
+glm::mat<4, 4, float, glm::defaultp>
+calculateProjection(const Map &map, int windowWidth, int windowHeight);
+
 void GlRenderer::draw(const Game &game) {
   int width, height;
   glfwGetFramebufferSize(window, &width, &height);
@@ -157,8 +164,7 @@ void GlRenderer::draw(const Game &game) {
   auto gridWidth = game.getMap().getWidth();
   auto gridHeight = game.getMap().getHeight();
 
-  auto projection =
-      glm::ortho(0.0f, float(gridWidth), float(gridHeight), 0.0f, -1.0f, 1.0f);
+  auto projection = calculateProjection(game.getMap(), width, height);
   glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1,
                      GL_FALSE, glm::value_ptr(projection));
 
@@ -167,9 +173,27 @@ void GlRenderer::draw(const Game &game) {
   drawMap(game.getMap());
   drawBombs(game.getBombs());
   drawFires(game.getFires());
+  drawEnemies(game.getEnemies());
   drawPlayers(game.getPlayers());
 
   glfwSwapBuffers(window);
+}
+
+glm::mat<4, 4, float, glm::defaultp>
+calculateProjection(const Map &map, int windowWidth, int windowHeight) {
+  auto gridAspectRatio = (map.getWidth() * 1.0f) / map.getHeight();
+  auto windowAspectRatio = (windowWidth * 1.0f) / windowHeight;
+  if (gridAspectRatio > windowAspectRatio) {
+    auto orthoHeight = map.getWidth() / windowAspectRatio;
+    auto heightLeft = (orthoHeight - map.getHeight()) / 2.0f;
+    return glm::ortho(0.0f, float(map.getWidth()),
+                      map.getHeight() + heightLeft, -heightLeft, -1.0f, 1.0f);
+  } else {
+    auto orthoWidth = map.getHeight() * windowAspectRatio;
+    auto widthLeft = (orthoWidth - map.getWidth()) / 2.0f;
+    return glm::ortho(-widthLeft, map.getWidth() + widthLeft,
+                      float(map.getHeight()), 0.0f, -1.0f, 1.0f);
+  }
 }
 
 void GlRenderer::drawMap(const Map &map) {
@@ -204,17 +228,19 @@ void GlRenderer::drawPlayers(const std::vector<Player> &players) {
     auto playerDirection = player.getDirection();
     auto offset = glm::vec2(0.0f, 0.0f);
     if (playerDirection == Direction::UP) {
-      offset = glm::vec2(0.0f, 0.25f);
+      offset = glm::vec2(0.0f, 0.125f);
     } else if (playerDirection == Direction::DOWN) {
       offset = glm::vec2(0.0f, 0.0f);
     } else if (playerDirection == Direction::LEFT) {
-      offset = glm::vec2(0.0f, 0.75f);
+      offset = glm::vec2(0.0f, 0.375f);
     } else if (playerDirection == Direction::RIGHT) {
-      offset = glm::vec2(0.0f, 0.5f);
+      offset = glm::vec2(0.0f, 0.25f);
     }
+    offset.y += player.getIsMoving() ? 0.5f : 0.0f;
+    offset.x += player.getAnimationFrame() * 0.5f;
     glUniform2f(glGetUniformLocation(shaderProgram, "frameOffset"), offset.x,
                 offset.y);
-    glUniform2f(glGetUniformLocation(shaderProgram, "frameSize"), 0.5f, 0.25f);
+    glUniform2f(glGetUniformLocation(shaderProgram, "frameSize"), 0.5f, 0.125f);
     auto playerPosition = player.getPosition();
     auto model = glm::translate(
         glm::mat4(1.0f), glm::vec3(playerPosition.x, playerPosition.y, 0.0f));
@@ -238,11 +264,20 @@ GlRenderer::~GlRenderer() {
 }
 
 void GlRenderer::drawBombs(const std::vector<Bomb> &bombs) {
+  const int BOMB_FRAMES = 12;
+  const float BOMB_ANIMATION_EXPONENT = 3.0f;
+
   glBindTexture(GL_TEXTURE_2D, bombSprite.getTextureId());
-  glUniform2f(glGetUniformLocation(shaderProgram, "frameOffset"), 0.0f, 0.0f);
-  glUniform2f(glGetUniformLocation(shaderProgram, "frameSize"), 1.0f, 1.0f);
+  glUniform2f(glGetUniformLocation(shaderProgram, "frameSize"),
+              1.0f / BOMB_FRAMES, 1.0f);
 
   for (const auto &bomb : bombs) {
+    auto curve = std::pow(bomb.getProgress(), BOMB_ANIMATION_EXPONENT);
+    auto frame =
+        std::min(static_cast<int>(curve * BOMB_FRAMES), BOMB_FRAMES - 1);
+    glUniform2f(glGetUniformLocation(shaderProgram, "frameOffset"),
+                static_cast<float>(frame) / BOMB_FRAMES, 0.0f);
+
     auto bombPosition = bomb.getPosition();
     auto model = glm::translate(
         glm::mat4(1.0f), glm::vec3(bombPosition.x, bombPosition.y, 0.0f));
@@ -261,6 +296,21 @@ void GlRenderer::drawFires(const std::vector<Fire> &fires) {
     auto firePosition = fire.getPosition();
     auto model = glm::translate(
         glm::mat4(1.0f), glm::vec3(firePosition.x, firePosition.y, 0.0f));
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1,
+                       GL_FALSE, glm::value_ptr(model));
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+  }
+}
+
+void GlRenderer::drawEnemies(const std::vector<Enemy> &enemies) {
+  glBindTexture(GL_TEXTURE_2D, enemySprite.getTextureId());
+  glUniform2f(glGetUniformLocation(shaderProgram, "frameOffset"), 0.0f, 0.0f);
+  glUniform2f(glGetUniformLocation(shaderProgram, "frameSize"), 1.0f, 1.0f);
+
+  for (const auto &enemy : enemies) {
+    auto enemyPosition = enemy.getPosition();
+    auto model = glm::translate(
+        glm::mat4(1.0f), glm::vec3(enemyPosition.x, enemyPosition.y, 0.0f));
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1,
                        GL_FALSE, glm::value_ptr(model));
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);

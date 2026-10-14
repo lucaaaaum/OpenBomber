@@ -2,6 +2,7 @@
 
 #include "game/bomb.h"
 #include "game/controller.h"
+#include "game/enemy.h"
 #include "game/map.h"
 #include "game/player.h"
 #include "game/renderer.h"
@@ -16,12 +17,17 @@ private:
   std::vector<Player> players;
   std::vector<Bomb> bombs;
   std::vector<Fire> fires;
+  std::vector<Enemy> enemies;
+  void startRound();
   void handleMovement(float dt);
   void handleBombPlacement();
   void updateBombs(float dt);
   void updateFires(float dt);
+  void updateEnemies(float dt);
+  bool isBlocked(const Hitbox &currentHitbox, const Hitbox &nextHitbox) const;
   int countPlayerBombs(const Player &player) const;
   void handleFireCollisions();
+  void handleEnemyCollisions();
   void reset();
 
 public:
@@ -31,4 +37,5 @@ public:
   const std::vector<Player> &getPlayers() const;
   const std::vector<Bomb> &getBombs() const;
   const std::vector<Fire> &getFires() const;
+  const std::vector<Enemy> &getEnemies() const;
 };
