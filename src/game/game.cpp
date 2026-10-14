@@ -120,37 +120,44 @@ void Game::updateEnemies(float dt) {
         enemy.getPosition() + directionVector * enemy.getSpeed() * dt;
     auto nextPositionHitbox = enemy.projectHitbox(nextPosition);
 
-    int startingRow = floor(nextPositionHitbox.getMin().y);
-    int endingRow = floor(nextPositionHitbox.getMax().y);
-    int startingColumn = floor(nextPositionHitbox.getMin().x);
-    int endingColumn = floor(nextPositionHitbox.getMax().x);
-
-    for (int row = startingRow; row <= endingRow; ++row) {
-      for (int column = startingColumn; column <= endingColumn; ++column) {
-        auto tile = map.getTile(column, row);
-        if (!tile || tile->getType() == MapTileType::EMPTY) {
-          continue;
-        }
-        auto tileHitbox = map.getTileHitbox(column, row);
-        if (nextPositionHitbox.intersects(tileHitbox)) {
-          enemy.invertDirection();
-          return;
-        }
-      }
-    }
-
-    auto currentHitbox = enemy.getHitbox();
-    for (auto &bomb : bombs) {
-      auto bombHitbox = bomb.getHitbox();
-      auto alreadyInsideBomb = currentHitbox.intersects(bombHitbox);
-      if (!alreadyInsideBomb && nextPositionHitbox.intersects(bombHitbox)) {
-        enemy.invertDirection();
-        return;
-      }
+    if (isBlocked(enemy.getHitbox(), nextPositionHitbox)) {
+      enemy.invertDirection();
+      continue;
     }
 
     enemy.setPosition(nextPosition);
   }
+}
+
+bool Game::isBlocked(const Hitbox &currentHitbox,
+                     const Hitbox &nextHitbox) const {
+  int startingRow = floor(nextHitbox.getMin().y);
+  int endingRow = floor(nextHitbox.getMax().y);
+  int startingColumn = floor(nextHitbox.getMin().x);
+  int endingColumn = floor(nextHitbox.getMax().x);
+
+  for (int row = startingRow; row <= endingRow; ++row) {
+    for (int column = startingColumn; column <= endingColumn; ++column) {
+      auto tile = map.getTile(column, row);
+      if (!tile || tile->getType() == MapTileType::EMPTY) {
+        continue;
+      }
+      auto tileHitbox = map.getTileHitbox(column, row);
+      if (nextHitbox.intersects(tileHitbox)) {
+        return true;
+      }
+    }
+  }
+
+  for (auto &bomb : bombs) {
+    auto bombHitbox = bomb.getHitbox();
+    auto alreadyInsideBomb = currentHitbox.intersects(bombHitbox);
+    if (!alreadyInsideBomb && nextHitbox.intersects(bombHitbox)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 glm::vec2 getDirectionVector(Controller &controller);

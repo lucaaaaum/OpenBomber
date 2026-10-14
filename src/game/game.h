@@ -23,6 +23,7 @@ private:
   void updateBombs(float dt);
   void updateFires(float dt);
   void updateEnemies(float dt);
+  bool isBlocked(const Hitbox &currentHitbox, const Hitbox &nextHitbox) const;
   int countPlayerBombs(const Player &player) const;
   void handleFireCollisions();
   void handleEnemyCollisions();
