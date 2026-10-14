@@ -149,6 +149,9 @@ void loadTexture(Sprite &sprite) {
   sprite.setSize(width, height);
 }
 
+glm::mat<4, 4, float, glm::defaultp>
+calculateProjection(const Map &map, int windowWidth, int windowHeight);
+
 void GlRenderer::draw(const Game &game) {
   int width, height;
   glfwGetFramebufferSize(window, &width, &height);
@@ -161,8 +164,7 @@ void GlRenderer::draw(const Game &game) {
   auto gridWidth = game.getMap().getWidth();
   auto gridHeight = game.getMap().getHeight();
 
-  auto projection =
-      glm::ortho(0.0f, float(gridWidth), float(gridHeight), 0.0f, -1.0f, 1.0f);
+  auto projection = calculateProjection(game.getMap(), width, height);
   glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1,
                      GL_FALSE, glm::value_ptr(projection));
 
@@ -175,6 +177,23 @@ void GlRenderer::draw(const Game &game) {
   drawPlayers(game.getPlayers());
 
   glfwSwapBuffers(window);
+}
+
+glm::mat<4, 4, float, glm::defaultp>
+calculateProjection(const Map &map, int windowWidth, int windowHeight) {
+  auto gridAspectRatio = (map.getWidth() * 1.0f) / map.getHeight();
+  auto windowAspectRatio = (windowWidth * 1.0f) / windowHeight;
+  if (gridAspectRatio > windowAspectRatio) {
+    auto orthoHeight = map.getWidth() / windowAspectRatio;
+    auto heightLeft = (orthoHeight - map.getHeight()) / 2.0f;
+    return glm::ortho(0.0f, float(map.getWidth()),
+                      map.getHeight() + heightLeft, -heightLeft, -1.0f, 1.0f);
+  } else {
+    auto orthoWidth = map.getHeight() * windowAspectRatio;
+    auto widthLeft = (orthoWidth - map.getWidth()) / 2.0f;
+    return glm::ortho(-widthLeft, map.getWidth() + widthLeft,
+                      float(map.getHeight()), 0.0f, -1.0f, 1.0f);
+  }
 }
 
 void GlRenderer::drawMap(const Map &map) {
