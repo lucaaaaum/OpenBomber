@@ -4,6 +4,8 @@
 #include "game/player.h"
 #include "infra/opengl/gl-renderer.h"
 #include <GLFW/glfw3.h>
+#include <algorithm>
+#include <cmath>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <stdexcept>
@@ -243,11 +245,20 @@ GlRenderer::~GlRenderer() {
 }
 
 void GlRenderer::drawBombs(const std::vector<Bomb> &bombs) {
+  const int BOMB_FRAMES = 12;
+  const float BOMB_ANIMATION_EXPONENT = 3.0f;
+
   glBindTexture(GL_TEXTURE_2D, bombSprite.getTextureId());
-  glUniform2f(glGetUniformLocation(shaderProgram, "frameOffset"), 0.0f, 0.0f);
-  glUniform2f(glGetUniformLocation(shaderProgram, "frameSize"), 1.0f, 1.0f);
+  glUniform2f(glGetUniformLocation(shaderProgram, "frameSize"),
+              1.0f / BOMB_FRAMES, 1.0f);
 
   for (const auto &bomb : bombs) {
+    auto curve = std::pow(bomb.getProgress(), BOMB_ANIMATION_EXPONENT);
+    auto frame =
+        std::min(static_cast<int>(curve * BOMB_FRAMES), BOMB_FRAMES - 1);
+    glUniform2f(glGetUniformLocation(shaderProgram, "frameOffset"),
+                static_cast<float>(frame) / BOMB_FRAMES, 0.0f);
+
     auto bombPosition = bomb.getPosition();
     auto model = glm::translate(
         glm::mat4(1.0f), glm::vec3(bombPosition.x, bombPosition.y, 0.0f));

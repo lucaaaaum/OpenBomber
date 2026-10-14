@@ -12,6 +12,10 @@ Hitbox Bomb::getHitbox() const { return hitbox; }
 
 void Bomb::update(float dt) { timer -= dt; }
 
+float Bomb::getProgress() const {
+  return glm::clamp(1.0f - timer / fuseDuration, 0.0f, 1.0f);
+}
+
 bool Bomb::hasExploded() const { return timer <= 0.0f; }
 
 std::vector<Fire> Bomb::explode() {
