@@ -9,24 +9,8 @@
 #include <glm/geometric.hpp>
 
 Game::Game(Controller &controller, Renderer &renderer)
-    : controller(controller), renderer(renderer), map(19, 19) {
-  auto player = Player(glm::vec2(1.0f, 1.0f));
-  players.push_back(player);
-
-  auto &emptyPositions = map.getEmptyTilePositions();
-  auto pickedPositions = std::vector<glm::vec2>();
-  for (int i = 0; i < 5; ++i) {
-    int randomIndex = rand() % emptyPositions.size();
-    auto randomPosition = emptyPositions[randomIndex];
-    if (std::find(pickedPositions.begin(), pickedPositions.end(),
-                  randomPosition) != pickedPositions.end()) {
-      --i;
-      continue;
-    }
-    pickedPositions.push_back(randomPosition);
-    auto enemy = Enemy(randomPosition);
-    enemies.push_back(enemy);
-  }
+    : controller(controller), renderer(renderer) {
+  startRound();
 }
 
 void Game::run() {
@@ -57,6 +41,30 @@ void Game::run() {
     if (allPlayersAreDead) {
       reset();
     }
+  }
+}
+
+void Game::startRound() {
+  auto player = Player(glm::vec2(1.0f, 1.0f));
+  players.push_back(player);
+
+  auto &emptyPositions = map.getEmptyTilePositions();
+  auto pickedPositions = std::vector<glm::vec2>();
+  for (int i = 0; i < 5; ++i) {
+    int randomIndex = rand() % emptyPositions.size();
+    auto randomPosition = emptyPositions[randomIndex];
+    if (randomPosition == glm::vec2(1.0f, 1.0f)) {
+      --i;
+      continue;
+    }
+    if (std::find(pickedPositions.begin(), pickedPositions.end(),
+                  randomPosition) != pickedPositions.end()) {
+      --i;
+      continue;
+    }
+    pickedPositions.push_back(randomPosition);
+    auto enemy = Enemy(randomPosition);
+    enemies.push_back(enemy);
   }
 }
 
@@ -310,27 +318,11 @@ int Game::countPlayerBombs(const Player &player) const {
 }
 
 void Game::reset() {
-  map = Map(19, 19);
   players.clear();
   bombs.clear();
   fires.clear();
   enemies.clear();
+  map = Map();
 
-  auto player = Player(glm::vec2(1.0f, 1.0f));
-  players.push_back(player);
-
-  auto &emptyPositions = map.getEmptyTilePositions();
-  auto pickedPositions = std::vector<glm::vec2>();
-  for (int i = 0; i < 5; ++i) {
-    int randomIndex = rand() % emptyPositions.size();
-    auto randomPosition = emptyPositions[randomIndex];
-    if (std::find(pickedPositions.begin(), pickedPositions.end(),
-                  randomPosition) != pickedPositions.end()) {
-      --i;
-      continue;
-    }
-    pickedPositions.push_back(randomPosition);
-    auto enemy = Enemy(randomPosition);
-    enemies.push_back(enemy);
-  }
+  startRound();
 }

@@ -24,7 +24,7 @@ private:
   std::vector<std::vector<MapTile>> grid;
 
 public:
-  Map(int width, int height);
+  Map(int width = 19, int height = 19);
   MapTile *getTile(int x, int y);
   const MapTile *getTile(int x, int y) const;
   int getWidth() const;

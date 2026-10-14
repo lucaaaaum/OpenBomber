@@ -18,6 +18,7 @@ private:
   std::vector<Bomb> bombs;
   std::vector<Fire> fires;
   std::vector<Enemy> enemies;
+  void startRound();
   void handleMovement(float dt);
   void handleBombPlacement();
   void updateBombs(float dt);
