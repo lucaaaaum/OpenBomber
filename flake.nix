@@ -48,7 +48,8 @@
 
             nativeBuildInputs = [
               pkgs.cmake
-            ];
+            ]
+            ++ pkgs.lib.optional (!isWindows) pkgs.makeWrapper;
 
             buildInputs = [
               targetPkgs.glfw
@@ -63,9 +64,25 @@
 
             env.CPATH = "${stb}";
 
+            # O jogo carrega as imagens de assets/ relativo à pasta atual. No
+            # Windows elas ficam ao lado do .exe; no Linux ficam em share/ e um
+            # wrapper entra nessa pasta antes de abrir o jogo.
             installPhase = ''
               runHook preInstall
               install -Dm755 ${exe} $out/bin/${exe}
+            ''
+            + (
+              if isWindows then
+                ''
+                  install -Dm644 -t $out/bin/assets $src/assets/*.png
+                ''
+              else
+                ''
+                  install -Dm644 -t $out/share/openbomber/assets $src/assets/*.png
+                  wrapProgram $out/bin/${exe} --chdir $out/share/openbomber
+                ''
+            )
+            + ''
               runHook postInstall
             '';
 

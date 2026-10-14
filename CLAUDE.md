@@ -22,7 +22,7 @@ nix build .#windows -o result-windows   # cross-compiles with MinGW-w64
 wine result-windows/bin/openbomber.exe  # run from the repo root
 ```
 
-- `flake.nix` builds both packages with `mkOpenbomber targetPkgs`; `packages.windows` passes `pkgsCross.mingwW64`. The Windows build drops `libGL` (CMake finds `opengl32`) and overrides `glm`'s `meta.platforms`, because nixpkgs doesn't mark it available on Windows. `bin/` gets the `.exe` plus Nix-symlinked DLLs (`glfw3.dll`, `libstdc++-6.dll`, `libgcc_s_seh-1.dll`, `libmcfgthread-2.dll`); copy with `cp -L` to take it to a real Windows machine, together with `assets/`.
+- `flake.nix` builds both packages with `mkOpenbomber targetPkgs`; `packages.windows` passes `pkgsCross.mingwW64`. The Windows build drops `libGL` (CMake finds `opengl32`) and overrides `glm`'s `meta.platforms`, because nixpkgs doesn't mark it available on Windows. `bin/` gets the `.exe` plus Nix-symlinked DLLs (`glfw3.dll`, `libstdc++-6.dll`, `libgcc_s_seh-1.dll`, `libmcfgthread-2.dll`); plus `assets/` with the PNGs. Copy it with `cp -rL` to take it to a real Windows machine.
 
 Plain CMake (inside the dev shell or with deps installed):
 
@@ -32,7 +32,7 @@ cmake --build build
 ./build/openbomber
 ```
 
-- Run the binary from the repository root: sprites are loaded from relative paths like `assets/player.png`, and the Nix package installs only the binary, not `assets/`.
+- Sprites are loaded from paths relative to the working directory (e.g. `assets/player.png`), so a CMake build must run from the repository root. The Nix package installs `assets/*.png` (not the `.aseprite` sources): on Linux into `share/openbomber/assets/`, with `bin/openbomber` being a `makeWrapper --chdir` wrapper, so `nix run` works from anywhere; on Windows into `bin/assets/`, next to the `.exe`.
 - Outside Nix, CMake falls back to `FetchContent` to download GLFW 3.4 and GLM 1.0.1. The Nix build disables network fetching and forces `find_package`.
 - `stb` (nothings/stb) is supplied only by the flake via `CPATH`; CMake does not know about it. A non-Nix build needs `stb_image.h` on the include path some other way.
 - `.devcontainer/` provides a Debian container with Nix (flakes enabled) that pre-builds the dev shell.
